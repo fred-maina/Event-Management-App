@@ -2,21 +2,19 @@ package com.fredmaina.event_management.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Entity
-
+@NoArgsConstructor
+@ToString
 @Table(name="Users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="user_id")
-    private int userId;
+    private int Id;
 
     @Column(name="first_name")
     private String firstName;
