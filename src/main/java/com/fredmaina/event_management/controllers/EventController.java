@@ -8,6 +8,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.config.Task;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,13 +36,31 @@ public class EventController {
         );
     }
     @GetMapping("/get/{creator_id}")
-    public ResponseEntity<List<Event>> getEventByCreator(@PathVariable int creator_id){
-        return ResponseEntity.ok(eventService.geteventByCreatorId(creator_id));
+    public ResponseEntity<APIResponse<List<Event>>> getEventByCreator(@PathVariable int creator_id){
+        return ResponseEntity.ok(
+                new APIResponse<List<Event>>(true,"Events fetched succesfully",eventService.geteventByCreatorId(creator_id))
+        );
     }
     @GetMapping("/get/")
-    public ResponseEntity<List<Event>> getAllEvents(){
-        return  ResponseEntity.of(eventService.getAllEvents());
+    public ResponseEntity<APIResponse<List<Event>>> getAllEvents() {
+        Optional<List<Event>> optionalEvents = eventService.getAllEvents();
+        if (optionalEvents.isPresent()) {
+            APIResponse<List<Event>> response = new APIResponse<>(
+                    true,
+                    "Events Fetched Successfully",
+                    optionalEvents.get()
+            );
+            return ResponseEntity.ok(response);
+        } else {
+            APIResponse<List<Event>> response = new APIResponse<>(
+                    false,
+                    "No Events Found",
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
     }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteEvent(@PathVariable int id){
         eventService.deleteEventById(id);
