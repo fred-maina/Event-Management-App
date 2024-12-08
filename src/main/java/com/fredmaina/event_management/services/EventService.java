@@ -41,4 +41,7 @@ public class EventService {
     public Optional<List<Event>> getAllEvents() {
         return Optional.of(eventRepository.findAll());
     }
+    public void  deleteEventById(int id){
+        eventRepository.deleteById(id);
+    }
 }
