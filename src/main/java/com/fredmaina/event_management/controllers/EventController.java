@@ -62,9 +62,11 @@ public class EventController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteEvent(@PathVariable int id){
+    public ResponseEntity<APIResponse<Event>> deleteEvent(@PathVariable int id){
         eventService.deleteEventById(id);
-        return ResponseEntity.ok("Event deleted successfully");
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new APIResponse<>(true,"Event Deleted successfully",null)
+        );
     }
 
 
