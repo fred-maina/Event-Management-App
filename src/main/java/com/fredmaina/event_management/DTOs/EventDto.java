@@ -1,5 +1,6 @@
 package com.fredmaina.event_management.DTOs;
 
+import com.fredmaina.event_management.models.TicketType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,5 +20,6 @@ public class EventDto {
     private String eventVenue;
     private int eventCapacity=-1;
     private int creatorId;
+    private TicketTypeDTO ticketTypeDTO;
 
 }
