@@ -25,7 +25,7 @@ public class TicketType {
     @Column(name="price")
     int price;
 
-    @ManyToOne(fetch=FetchType.EAGER)
+    @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="event_id" ,referencedColumnName = "event_id")
     private Event event;
 
