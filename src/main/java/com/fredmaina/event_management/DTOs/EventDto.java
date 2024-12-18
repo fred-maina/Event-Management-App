@@ -7,6 +7,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,6 +22,6 @@ public class EventDto {
     private String eventVenue;
     private int eventCapacity=-1;
     private int creatorId;
-    private TicketTypeDTO ticketType;
+    private List<TicketTypeDTO> ticketType;
 
 }
