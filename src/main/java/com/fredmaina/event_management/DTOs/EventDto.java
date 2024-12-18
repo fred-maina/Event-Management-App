@@ -20,6 +20,6 @@ public class EventDto {
     private String eventVenue;
     private int eventCapacity=-1;
     private int creatorId;
-    private TicketTypeDTO ticketTypeDTO;
+    private TicketTypeDTO ticketType;
 
 }
