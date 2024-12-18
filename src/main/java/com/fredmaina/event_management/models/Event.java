@@ -1,5 +1,6 @@
 package com.fredmaina.event_management.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,7 +35,8 @@ public class Event {
     private int eventCapacity=-1;//capacity -1 means the space is unlimited
 
     @JoinColumn(name="creator_id",referencedColumnName = "user_id")
-    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     private User creator;
 
 
