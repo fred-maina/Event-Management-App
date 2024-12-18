@@ -3,6 +3,7 @@ package com.fredmaina.event_management.services;
 import com.fredmaina.event_management.DTOs.EventDto;
 import com.fredmaina.event_management.DTOs.UserDto;
 import com.fredmaina.event_management.models.Event;
+import com.fredmaina.event_management.models.TicketType;
 import com.fredmaina.event_management.models.User;
 import com.fredmaina.event_management.repositories.EventRepository;
 import com.fredmaina.event_management.repositories.UserRepository;
@@ -11,10 +12,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EventService {
-
+    @Autowired
+    private TicketTypeService ticketTypeService;
     @Autowired
     private EventRepository eventRepository;
     @Autowired
@@ -29,8 +32,20 @@ public class EventService {
         }
         User user = userOptional.get();
         Event event=new Event(eventDto.getId(),eventDto.getEventName(),eventDto.getEventStartDate(),eventDto.getEventEndDate(),eventDto.getEventVenue(), eventDto.getEventCapacity(), user);
-        System.out.println(event);
+
         eventRepository.save(event);
+        List<TicketType> ticketTypes = eventDto.getTicketType().stream().map(ticketTypeDTO -> {
+            TicketType ticketType=new TicketType();
+
+            ticketType.setTypeCategory(ticketTypeDTO.getTypeCategory());
+            ticketType.setNumberOfTickets(ticketTypeDTO.getNumberOfTickets());
+            ticketType.setPrice(ticketTypeDTO.getPrice());
+            ticketType.setEvent(event);
+            System.out.println(ticketType);
+            return ticketType;
+        }).toList();
+        ticketTypeService.createTicketType(ticketTypes);
+
         return Optional.of(event);
     }
     public Optional<List<Event>> getEventByCreatorId(int id){
