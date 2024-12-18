@@ -29,7 +29,8 @@ public class EventController {
 
     @PostMapping("/create")
     public ResponseEntity<APIResponse<Event>> createEvent(@RequestBody EventDto eventDto){
-        System.out.println(eventDto.getCreatorId());
+
+
         Optional<User> userOptional = userRepository.findById(eventDto.getCreatorId());
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
@@ -59,7 +60,7 @@ public class EventController {
             );
         }
         return ResponseEntity.ok(
-                new APIResponse<List<Event>>(true,"Events fetched succesfully",eventService.getEventByCreatorId(creator_id).get())
+                new APIResponse<List<Event>>(true,"Events fetched successfully",eventService.getEventByCreatorId(creator_id).get())
         );
     }
     @GetMapping("/get/")
