@@ -33,13 +33,16 @@ public class EventService {
         eventRepository.save(event);
         return Optional.of(event);
     }
-    public List<Event> geteventByCreatorId(int id){
-        return eventRepository.findByCreatorId(id);
-
+    public Optional<List<Event>> getEventByCreatorId(int id){
+        List<Event> events= eventRepository.findByCreatorId(id);
+        return events.isEmpty() ? Optional.empty():Optional.of(events);
     }
 
     public Optional<List<Event>> getAllEvents() {
         return Optional.of(eventRepository.findAll());
+    }
+    public Optional<Event> getEventById(Integer id){
+        return eventRepository.findById(id);
     }
     public void  deleteEventById(int id){
         eventRepository.deleteById(id);
