@@ -67,7 +67,7 @@ public class EventControllerTest {
         ResponseEntity<APIResponse<List<Event>>> response = eventController.getEventByCreator(creatorId);
         assertNotNull(response);
         assertEquals(response.getBody().getData(),events);
-        assertEquals(HttpStatusCode.valueOf(200),response.getStatusCode());
+        assertEquals(HttpStatusCode.valueOf(280),response.getStatusCode());
         assertEquals(response.getBody().getMessage(),"Events fetched successfully");
     }
 
