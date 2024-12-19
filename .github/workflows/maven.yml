@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     services:
       mysql:
         image: mysql:8.0
@@ -19,10 +20,8 @@ jobs:
           --health-timeout=5s
           --health-retries=3
         env:
-          MYSQL_ROOT_PASSWORD: password
+          MYSQL_ROOT_PASSWORD: h$+4PrDpjVN!
           MYSQL_DATABASE: events_db
-          MYSQL_USER: root
-          MYSQL_PASSWORD: password
 
     steps:
       - name: Checkout Code
@@ -31,7 +30,7 @@ jobs:
       - name: Wait for MySQL to be Ready
         run: |
           for i in {1..30}; do
-            if mysqladmin ping -h127.0.0.1 -uroot -ppassword --silent; then
+            if mysqladmin ping -h127.0.0.1 -uroot -ph$+4PrDpjVN! --silent; then
               echo "MySQL is ready!"
               exit 0
             fi
@@ -50,5 +49,5 @@ jobs:
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/events_db
           SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: password
+          SPRING_DATASOURCE_PASSWORD: h$+4PrDpjVN!
         run: mvn clean install
