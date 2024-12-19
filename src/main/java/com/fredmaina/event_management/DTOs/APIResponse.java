@@ -9,7 +9,7 @@ import org.apache.logging.log4j.message.Message;
 @Setter
 @AllArgsConstructor
 public class APIResponse<T> {
-    private Boolean success;
+    private boolean success;
     private String message;
     private T data;
     APIResponse(Boolean success,String message){
