@@ -2,11 +2,13 @@ package com.fredmaina.event_management.controllers;
 
 import com.fredmaina.event_management.DTOs.APIResponse;
 import com.fredmaina.event_management.DTOs.EventDto;
+import com.fredmaina.event_management.DTOs.TicketTypeDTO;
 import com.fredmaina.event_management.models.Event;
 import com.fredmaina.event_management.models.User;
 import com.fredmaina.event_management.repositories.EventRepository;
 import com.fredmaina.event_management.repositories.UserRepository;
 import com.fredmaina.event_management.services.EventService;
+import com.fredmaina.event_management.services.TicketTypeService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,9 +25,11 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class EventController {
     @Autowired
-    EventService eventService;
+    private EventService eventService;
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
+    @Autowired
+    private TicketTypeService ticketTypeService;
 
     @PostMapping("/create")
     public ResponseEntity<APIResponse<Event>> createEvent(@RequestBody EventDto eventDto){
@@ -46,7 +50,7 @@ public class EventController {
 
     }
     @GetMapping("/get/{creator_id}")
-    public ResponseEntity<APIResponse<List<Event>>> getEventByCreator(@PathVariable int creator_id){
+    public ResponseEntity<APIResponse<List<EventDto>>> getEventsByCreator(@PathVariable int creator_id){
         Optional<User> optionalUser = userRepository.findById(creator_id);
         if (optionalUser.isEmpty()){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
@@ -59,8 +63,28 @@ public class EventController {
                     new APIResponse<>(false,"Error fetching Events: User with id: "+creator_id+" does not have any events created.",null)
             );
         }
+        List<Event> events =eventService.getEventByCreatorId(creator_id).get();
+        List<EventDto> eventDtos = events.stream().map(event -> {return
+        new EventDto(
+                event.getId(),
+                event.getEventName(),
+                event.getEventStartDate(),
+                event.getEventEndDate(),
+                event.getEventVenue(),
+                event.getEventCapacity(),
+                event.getCreator().getId(),
+                ticketTypeService.findAllTicketTypesByEvent(event).stream().map(ticketType->{
+            return new TicketTypeDTO(
+                    ticketType.getId(),
+                    ticketType.getTypeCategory(),
+                    ticketType.getNumberOfTickets(),
+                    ticketType.getPrice(),
+                    ticketType.getEvent().getId());
+        }).toList() );
+        }).toList();
+
         return ResponseEntity.ok(
-                new APIResponse<List<Event>>(true,"Events fetched successfully",eventService.getEventByCreatorId(creator_id).get())
+                new APIResponse<List<EventDto>>(true,"Events fetched successfully",eventDtos)
         );
     }
     @GetMapping("/get/")
