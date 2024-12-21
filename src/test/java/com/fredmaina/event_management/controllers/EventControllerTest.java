@@ -103,7 +103,7 @@ public class EventControllerTest {
         assertTrue(response.getBody().isSuccess()); // Verify the success flag
         assertEquals("Events fetched successfully", response.getBody().getMessage()); // Verify the message
         assertEquals(1, response.getBody().getData().size()); // Verify the number of events returned
-    // Verify the event DTO content
+        assertEquals(eventDto.getTicketType().getFirst().getEventId(), response.getBody().getData().getFirst().getTicketType().getFirst().getEventId()); // Verify the event DTO content
     }
 
 
