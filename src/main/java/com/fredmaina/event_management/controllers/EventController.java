@@ -44,12 +44,14 @@ public class EventController {
     private JWTUtil jwtUtil;
 
     @PostMapping(value="/create",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<APIResponse<Event>> createEvent(@RequestPart("event") @Valid EventDto eventDto, @RequestPart("poster") MultipartFile poster){
-        System.out.println("Received EventDto: " + eventDto);
-        // Replace with your bucket name
+    public ResponseEntity<APIResponse<Event>> createEvent(@RequestPart("event") @Valid EventDto eventDto, @RequestPart("poster") MultipartFile poster,@RequestHeader("Authorization") String token){
+        token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
+        // Extract user ID from token
+        String username = jwtUtil.getUsernameFromToken(token);  // Ensure the method works
+        UUID userId = userRepository.findByEmail(username).getId();
+        eventDto.setCreatorId(userId);
         String bucketName = "fredeventsystem";
 
-        // Generate a unique key for the file (use UUID or some unique string)
         String key = UUID.randomUUID()+"_" + poster.getOriginalFilename(); // Or use a UUID to generate a unique filename
 
         s3Service.uploadFileToS3(bucketName, poster, key);
@@ -62,6 +64,7 @@ public class EventController {
                     new APIResponse<>(false, "Event creation failed. The specified creator ID does not exist.", null)
             );
         }
+
         Optional<Event> eventOptional = eventService.createEvent(eventDto);
         return eventOptional.map(event -> ResponseEntity.ok(
                 new APIResponse<>(true, "Event created successfully", event)
