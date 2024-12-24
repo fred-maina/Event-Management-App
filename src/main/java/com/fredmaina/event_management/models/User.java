@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @Entity
@@ -12,9 +14,9 @@ import lombok.*;
 @Table(name="Users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name="user_id")
-    private int Id;
+    private UUID Id;
 
     @Column(name="first_name")
     private String firstName;

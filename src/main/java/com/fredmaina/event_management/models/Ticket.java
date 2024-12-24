@@ -32,9 +32,9 @@ public class Ticket {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "ticket_id")
-    private int id;
+    private UUID id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)

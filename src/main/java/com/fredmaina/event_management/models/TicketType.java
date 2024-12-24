@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.Reference;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -14,18 +16,18 @@ import org.springframework.data.annotation.Reference;
 @Table(name = "TicketType")
 public class TicketType {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "type_id")
-    int id;
+    private UUID id;
 
     @Column(name="type_category")
-    String typeCategory;//e.g vip VVIP Regular EarlyBird
+    private String typeCategory;//e.g vip VVIP Regular EarlyBird
 
     @Column(name="price")
-    int price;
+    private int price;
 
     @Column(name="number_of_tickets")
-    int numberOfTickets;
+    private int numberOfTickets;
 
     @ManyToOne(fetch=FetchType.LAZY,cascade = CascadeType.ALL)
     @JsonIgnore
