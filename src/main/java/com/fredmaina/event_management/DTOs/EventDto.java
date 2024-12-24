@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -13,13 +14,14 @@ import java.util.List;
 @NoArgsConstructor
 public class EventDto {
 
-    private Integer id;
+    private UUID id;
     private  String eventName;
     private LocalDateTime eventStartDate;
     private LocalDateTime eventEndDate;
     private String eventVenue;
     private int eventCapacity=-1;
-    private int creatorId;
+    private UUID creatorId;
+    private String posterUrl;
     private List<TicketTypeDTO> ticketType;
 
 }
