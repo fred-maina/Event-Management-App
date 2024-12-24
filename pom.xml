@@ -91,12 +91,14 @@
 			<scope>runtime</scope>
 		</dependency>
 		<!-- JUnit 5 -->
+		<!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk -->
 		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<version>5.10.0</version>
-			<scope>test</scope>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk</artifactId>
+			<version>1.12.779</version>
 		</dependency>
+		<!-- Spring Boot Starter for AWS S3 Integration -->
+
 
 		<!-- Mockito -->
 		<dependency>
