@@ -23,7 +23,7 @@ public class AuthController {
         if (optional.isEmpty()){
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
-        return ResponseEntity.status(HttpStatusCode.valueOf(201)).build();
+        return ResponseEntity.status(HttpStatusCode.valueOf(201)).body(optional);
     }
 
 
