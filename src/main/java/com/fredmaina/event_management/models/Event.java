@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -15,9 +17,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Event {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name="event_id")
-    private Integer id;
+    private UUID id;
+
 
     @Column(name="event_name",nullable = false,length = 255)
     private  String eventName;
@@ -34,10 +37,13 @@ public class Event {
     @Column(name="event_capacity",nullable = false)
     private int eventCapacity=-1;//capacity -1 means the space is unlimited
 
+    private String posterUrl;
+
     @JoinColumn(name="creator_id",referencedColumnName = "user_id")
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     private User creator;
+
 
 
 }
