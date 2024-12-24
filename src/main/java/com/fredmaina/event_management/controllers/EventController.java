@@ -1,5 +1,6 @@
 package com.fredmaina.event_management.controllers;
 
+import com.fredmaina.event_management.utils.JWTUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import com.fredmaina.event_management.DTOs.APIResponse;
@@ -39,6 +40,8 @@ public class EventController {
     private TicketTypeService ticketTypeService;
     @Autowired
     private S3Service s3Service;
+    @Autowired
+    private JWTUtil jwtUtil;
 
     @PostMapping(value="/create",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<APIResponse<Event>> createEvent(@RequestPart("event") @Valid EventDto eventDto, @RequestPart("poster") MultipartFile poster){
@@ -67,6 +70,17 @@ public class EventController {
         ));
 
     }
+    @GetMapping("/get/all")
+    public ResponseEntity<APIResponse<List<EventDto>>> getEventsByCreatorFromToken(@RequestHeader("Authorization") String token) {
+        token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
+
+        // Extract user ID from token
+        String username = jwtUtil.getUsernameFromToken(token);  // Ensure the method works
+        UUID userId = userRepository.findByEmail(username).getId();
+
+        return getEventsByCreator(userId);  // Call your event fetching method
+    }
+
     @GetMapping("/get/{creator_id}")
     public ResponseEntity<APIResponse<List<EventDto>>> getEventsByCreator(@PathVariable UUID creator_id){
         Optional<User> optionalUser = userRepository.findById(creator_id);
