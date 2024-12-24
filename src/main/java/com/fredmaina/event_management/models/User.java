@@ -35,4 +35,8 @@ public class User {
         this.password=password;
 
     }
+
+    public boolean isEnabled() {
+        return true;
+    }
 }
