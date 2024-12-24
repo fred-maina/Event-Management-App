@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,15 +25,14 @@ public class EventService {
     private UserRepository userRepository;
 
     public Optional<Event> createEvent(EventDto eventDto){
-        int userId = eventDto.getCreatorId();
+        UUID userId = eventDto.getCreatorId();
         Optional<User> userOptional = userRepository.findById(userId);
 
         if (userOptional.isEmpty()){
             return Optional.empty();
         }
         User user = userOptional.get();
-        Event event=new Event(eventDto.getId(),eventDto.getEventName(),eventDto.getEventStartDate(),eventDto.getEventEndDate(),eventDto.getEventVenue(), eventDto.getEventCapacity(), user);
-
+        Event event=new Event(eventDto.getId(),eventDto.getEventName(),eventDto.getEventStartDate(),eventDto.getEventEndDate(),eventDto.getEventVenue(), eventDto.getEventCapacity(),eventDto.getPosterUrl(), user);
         eventRepository.save(event);
         List<TicketType> ticketTypes = eventDto.getTicketType().stream().map(ticketTypeDTO -> {
             TicketType ticketType=new TicketType();
@@ -48,18 +48,19 @@ public class EventService {
 
         return Optional.of(event);
     }
-    public Optional<List<Event>> getEventByCreatorId(int id){
+    public Optional<List<Event>> getEventByCreatorId(UUID id){
         List<Event> events= eventRepository.findByCreatorId(id);
+
         return events.isEmpty() ? Optional.empty():Optional.of(events);
     }
 
     public Optional<List<Event>> getAllEvents() {
         return Optional.of(eventRepository.findAll());
     }
-    public Optional<Event> getEventById(Integer id){
+    public Optional<Event> getEventById(UUID id){
         return eventRepository.findById(id);
     }
-    public void  deleteEventById(int id){
+    public void  deleteEventById(UUID id){
         eventRepository.deleteById(id);
     }
 }
