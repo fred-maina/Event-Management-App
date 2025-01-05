@@ -24,7 +24,7 @@ The Event Management Application is a Spring Boot-based platform that enables us
 
 ### Clone the Repository
 ```bash
-git clone https://github.com/fred-maina/event-management-app.git
+git clone https://github.com/your-repo/event-management-app.git
 cd event-management-app
 ```
 
@@ -59,7 +59,7 @@ cd event-management-app
 {
   "email": "user@example.com",
   "password": "securepassword",
-  "firstName": "John",
+  "firstName": "Jane",
   "lastName": "Doe"
 }
 ```
@@ -69,6 +69,13 @@ cd event-management-app
 {
   "success": true,
   "message": "User registered successfully",
+  "user": {
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "email": "user@example.com",
+    "enabled": true,
+    "id": "123e4567-e89b-12d3-a456-426614174000"
+  },
   "token": "<JWT_TOKEN>"
 }
 ```
@@ -107,8 +114,8 @@ Authorization: Bearer <JWT_TOKEN>
   ```json
   {
     "eventName": "Tech Conference",
-    "eventStartDate": "2025-01-10",
-    "eventEndDate": "2025-01-12",
+    "eventStartDate": "2025-01-10T10:00:00",
+    "eventEndDate": "2025-01-12T15:00:00",
     "eventVenue": "Online",
     "eventCapacity": 500
   }
@@ -121,9 +128,13 @@ Authorization: Bearer <JWT_TOKEN>
   "success": true,
   "message": "Event created successfully",
   "data": {
-    "id": "<EVENT_ID>",
+    "id": "123e4567-e89b-12d3-a456-426614174000",
     "eventName": "Tech Conference",
-    "posterUrl": "<FILE_URL>"
+    "eventStartDate": "2025-01-10T10:00:00",
+    "eventEndDate": "2025-01-12T15:00:00",
+    "eventVenue": "Online",
+    "eventCapacity": 500,
+    "posterUrl": "https://bucket-name.s3.region.amazonaws.com/event-poster.jpg"
   }
 }
 ```
@@ -135,13 +146,13 @@ Authorization: Bearer <JWT_TOKEN>
 ```json
 {
   "success": true,
-  "message": "Events Fetched Successfully",
+  "message": "Events fetched successfully",
   "data": [
     {
-      "id": "<EVENT_ID>",
+      "id": "123e4567-e89b-12d3-a456-426614174000",
       "eventName": "Tech Conference",
-      "eventStartDate": "2025-01-10",
-      "eventEndDate": "2025-01-12",
+      "eventStartDate": "2025-01-10T10:00:00",
+      "eventEndDate": "2025-01-12T15:00:00",
       "eventVenue": "Online",
       "eventCapacity": 500
     }
@@ -159,10 +170,10 @@ Authorization: Bearer <JWT_TOKEN>
   "message": "Events fetched successfully",
   "data": [
     {
-      "id": "<EVENT_ID>",
+      "id": "123e4567-e89b-12d3-a456-426614174000",
       "eventName": "Tech Conference",
-      "eventStartDate": "2025-01-10",
-      "eventEndDate": "2025-01-12",
+      "eventStartDate": "2025-01-10T10:00:00",
+      "eventEndDate": "2025-01-12T15:00:00",
       "eventVenue": "Online",
       "eventCapacity": 500
     }
@@ -182,7 +193,7 @@ Authorization: Bearer <JWT_TOKEN>
 ```json
 {
   "success": true,
-  "message": "Event Deleted successfully"
+  "message": "Event deleted successfully"
 }
 ```
 
@@ -195,7 +206,7 @@ Authorization: Bearer <JWT_TOKEN>
 **Response:**
 ```json
 {
-  "url": "<FILE_URL>"
+  "url": "https://bucket-name.s3.region.amazonaws.com/uploaded-file.jpg"
 }
 ```
 
@@ -211,6 +222,4 @@ Authorization: Bearer <JWT_TOKEN>
 Contributions are welcome! Please create a pull request with a detailed explanation of your changes.
 
 ## Contact
-**Fredrick Maina**
-- Email: [fchege04@gmail.com](mailto:fchege04@gmail.com)
-- GitHub: [fred-maina](https://github.com/fred-maina)
+For any inquiries, please reach out to the project maintainer via email.
