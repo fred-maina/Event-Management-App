@@ -24,7 +24,7 @@ The Event Management Application is a Spring Boot-based platform that enables us
 
 ### Clone the Repository
 ```bash
-git clone https://github.com/your-repo/event-management-app.git
+git clone https://github.com/fred-maina/Event-Management-App.git
 cd event-management-app
 ```
 
