@@ -10,6 +10,8 @@ import com.fredmaina.event_management.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +25,8 @@ public class EventService {
     private EventRepository eventRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private  S3Service s3Service;
 
     public Optional<Event> createEvent(EventDto eventDto){
         UUID userId = eventDto.getCreatorId();
@@ -61,6 +65,58 @@ public class EventService {
         return eventRepository.findById(id);
     }
     public void  deleteEventById(UUID id){
+        String bucketName = "fredeventsystem";
+        Optional<Event> eventOptional = eventRepository.findById(id);
+        if (eventOptional.isPresent()){
+            eventOptional.map(event->event.getPosterUrl()).ifPresent(posterURL-> {
+                try {
+                    s3Service.deleteFileFromURL(bucketName,posterURL);
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+
         eventRepository.deleteById(id);
     }
+
+public Optional<Event> updateEventInfo(EventDto eventDto,UUID id){
+        Optional<Event> eventOptional = eventRepository.findById(id);
+        if(eventOptional.isEmpty()){
+            return Optional.empty();
+        }
+
+        if(eventDto.getEventVenue()!=null){
+            eventOptional.get().setEventVenue(eventDto.getEventVenue());
+        }
+        if(eventDto.getEventName()!=null){
+            eventOptional.get().setEventName(eventDto.getEventName());
+        }
+         if(eventDto.getEventCapacity()!=0){
+            eventOptional.get().setEventCapacity(eventDto.getEventCapacity());
+        }
+        if(eventDto.getEventStartDate()!=null){
+            eventOptional.get().setEventStartDate(eventDto.getEventStartDate());
+        }
+        if(eventDto.getEventEndDate()!=null){
+            eventOptional.get().setEventEndDate(eventDto.getEventEndDate());
+        }
+        if(eventDto.getPosterUrl()!=null){
+            eventOptional.get().setPosterUrl(eventDto.getPosterUrl());
+        }
+        if(eventDto.getEventVenue()!=null){
+            eventOptional.get().setEventEndDate(eventDto.getEventEndDate());
+        }
+        if(eventDto.getTicketType() !=null){
+            List<TicketType> ticketType= new ArrayList<>();
+            eventDto.getTicketType().forEach(ticketTypeDTO -> {
+
+                ticketType.add(ticketTypeService.updateTicketType(ticketTypeDTO.getId(),ticketTypeDTO).get());
+            });
+
+        }
+    return  Optional.of(eventRepository.save(eventOptional.get()));
+
+    }
+
 }
