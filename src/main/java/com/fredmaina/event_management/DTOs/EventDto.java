@@ -1,5 +1,6 @@
 package com.fredmaina.event_management.DTOs;
 
+import com.fredmaina.event_management.models.Event;
 import com.fredmaina.event_management.models.TicketType;
 import lombok.*;
 
@@ -12,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @ToString
 @NoArgsConstructor
-public class EventDto {
+public class EventDto  {
 
     private UUID id;
     private  String eventName;
