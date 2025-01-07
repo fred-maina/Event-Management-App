@@ -50,7 +50,8 @@ public class EventController {
         String username = jwtUtil.getUsernameFromToken(token);  // Ensure the method works
         UUID userId = userRepository.findByEmail(username).getId();
         eventDto.setCreatorId(userId);
-        String bucketName = "fredeventsystem";
+         String bucketName = "fredeventsystem";
+
 
         String key = UUID.randomUUID()+"_" + poster.getOriginalFilename(); // Or use a UUID to generate a unique filename
 
@@ -99,8 +100,7 @@ public class EventController {
             );
         }
         List<Event> events =eventService.getEventByCreatorId(creator_id).get();
-        List<EventDto> eventDtos = events.stream().map(event -> {return
-        new EventDto(
+        List<EventDto> eventDtos = events.stream().map(event -> new EventDto(
                 event.getId(),
                 event.getEventName(),
                 event.getEventStartDate(),
@@ -109,15 +109,12 @@ public class EventController {
                 event.getEventCapacity(),
                 event.getCreator().getId(),
                 event.getPosterUrl(),
-                ticketTypeService.findAllTicketTypesByEvent(event).stream().map(ticketType->{
-            return new TicketTypeDTO(
-                    ticketType.getId(),
-                    ticketType.getTypeCategory(),
-                    ticketType.getNumberOfTickets(),
-                    ticketType.getPrice(),
-                    ticketType.getEvent().getId());
-        }).toList() );
-        }).toList();
+                ticketTypeService.findAllTicketTypesByEvent(event).stream().map(ticketType-> new TicketTypeDTO(
+                        ticketType.getId(),
+                        ticketType.getTypeCategory(),
+                        ticketType.getNumberOfTickets(),
+                        ticketType.getPrice(),
+                        ticketType.getEvent().getId())).toList() )).toList();
 
         return ResponseEntity.ok(
                 new APIResponse<List<EventDto>>(true,"Events fetched successfully",eventDtos)
@@ -144,12 +141,21 @@ public class EventController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<APIResponse<Event>> deleteEvent(@PathVariable UUID id){
+    public ResponseEntity<APIResponse<Event>> deleteEvent(@RequestHeader("Authorization") String token,@PathVariable UUID id){
         Optional<Event> optionalEvent = eventService.getEventById(id);
         if (optionalEvent.isEmpty()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new APIResponse<>(false,"Event does not exist",null)
             );
+        }
+        token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
+        // Extract user ID from token
+        String username = jwtUtil.getUsernameFromToken(token);
+        if(!optionalEvent.get().getCreator().getEmail().equals(username)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(
+                            new APIResponse<>(false,"You are unauthorized to perform this action!",null)
+                    );
         }
         eventService.deleteEventById(id);
 
@@ -157,22 +163,26 @@ public class EventController {
                 new APIResponse<>(true,"Event Deleted successfully",null)
         );
     }
+    @PatchMapping("/update/{eventId}")
+    public ResponseEntity<APIResponse<Event>> updateEvent(@PathVariable UUID eventId, @RequestHeader("Authorization") String token,@RequestBody EventDto eventDto){
+        Optional<Event> eventOptional = eventService.getEventById(eventId);
+        if (eventOptional.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new APIResponse<>(false,"Event Does not Exist",null));
+        }
+        token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
+        // Extract user ID from token
+        String username = jwtUtil.getUsernameFromToken(token);
+        if(!eventOptional.get().getCreator().getEmail().equals(username)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(
+                            new APIResponse<>(false,"You are unauthorized to perform this action!",null)
+                    );
+        }
+        Optional<Event> updatedEvent= eventService.updateEventInfo(eventDto,eventId);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new APIResponse<>(true,"Event Info Updated successfully",updatedEvent.get())
+        );
 
-    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String, String>> uploadFileToS3(
-            @RequestParam("file") MultipartFile file) {
-
-        // Replace with your bucket name
-        String bucketName = "fredeventsystem";
-
-        // Generate a unique key for the file (use UUID or some unique string)
-        String key = file.getOriginalFilename(); // Or use a UUID to generate a unique filename
-
-        // Upload the file and get the URL
-        s3Service.uploadFileToS3(bucketName, file, key);
-        String fileUrl = s3Service.getFileUrl(bucketName, key);
-
-        return ResponseEntity.ok(Map.of("url", fileUrl));
     }
 
 }
