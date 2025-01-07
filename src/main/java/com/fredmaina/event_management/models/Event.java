@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +45,18 @@ public class Event {
     @ManyToOne(fetch = FetchType.LAZY)
     private User creator;
 
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<TicketType> ticketTypes = new ArrayList<>();
 
+    public Event(UUID id, String eventName, LocalDateTime eventStartDate, LocalDateTime eventEndDate, String eventVenue, int eventCapacity, String posterUrl, User creator) {
+        this.id = id;
+        this.eventName = eventName;
+        this.eventStartDate = eventStartDate;
+        this.eventEndDate = eventEndDate;
+        this.eventVenue = eventVenue;
+        this.eventCapacity = eventCapacity;
+        this.posterUrl = posterUrl;
+        this.creator = creator;
 
+    }
 }
