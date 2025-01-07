@@ -1,6 +1,7 @@
 package com.fredmaina.event_management.DTOs;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,5 +18,6 @@ public class TicketTypeDTO {
     private String typeCategory;
     private int numberOfTickets;
     private int price;
+    @JsonIgnore
     private UUID eventId;
 }
