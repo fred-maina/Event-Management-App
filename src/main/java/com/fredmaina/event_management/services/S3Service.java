@@ -1,12 +1,17 @@
 package com.fredmaina.event_management.services;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,39 +19,56 @@ import java.nio.file.Paths;
 @Service
 public class S3Service {
 
-    private final AmazonS3 amazonS3;
+    @Autowired
+    private  S3Client s3Client;
 
-    public S3Service(AmazonS3 amazonS3) {
-        this.amazonS3 = amazonS3;
-    }
 
     public void uploadFileToS3(String bucketName, MultipartFile multipartFile, String key) {
         try {
-            // Convert MultipartFile to File
-            File file = convertMultipartFileToFile(multipartFile);
+            // Convert MultipartFile to Path
+            Path tempFilePath = convertMultipartFileToPath(multipartFile);
 
             // Upload file to S3
-            amazonS3.putObject(new PutObjectRequest(bucketName, key, file));
+            s3Client.putObject(PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build(), tempFilePath);
 
             // Delete the temporary file after upload
-            file.delete();
+            Files.delete(tempFilePath);
 
         } catch (IOException e) {
             throw new RuntimeException("Error while converting MultipartFile to File", e);
+        } catch (S3Exception e) {
+            throw new RuntimeException("Error while uploading file to S3", e);
         }
     }
 
-    private File convertMultipartFileToFile(MultipartFile multipartFile) throws IOException {
+    private Path convertMultipartFileToPath(MultipartFile multipartFile) throws IOException {
         // Create a temporary file
-        File tempFile = File.createTempFile("temp", multipartFile.getOriginalFilename());
+        Path tempFilePath = Files.createTempFile("temp", multipartFile.getOriginalFilename());
 
         // Write the contents of the MultipartFile to the temporary file
-        multipartFile.transferTo(tempFile);
+        Files.write(tempFilePath, multipartFile.getBytes());
 
-        return tempFile;
+        return tempFilePath;
+    }
+    public void deleteFileFromKey(String bucketName, String key){
+        s3Client.deleteObject(DeleteObjectRequest.builder().key(key).bucket(bucketName).build());
+
+    }
+    public void deleteFileFromURL(String bucketName,String url) throws MalformedURLException {
+
+        String key= new URL(url).getPath().substring(1);
+        deleteFileFromKey(bucketName,key);
     }
 
+
+
     public String getFileUrl(String bucketName, String key) {
-        return amazonS3.getUrl(bucketName, key).toString();
+        return s3Client.utilities().getUrl(builder -> builder
+                        .bucket(bucketName)
+                        .key(key))
+                .toString();
     }
 }
