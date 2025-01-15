@@ -41,13 +41,13 @@ public class EventController {
     public ResponseEntity<APIResponse<Event>> createEvent(@RequestPart("event") @Valid EventDto eventDto, @RequestPart("poster") MultipartFile poster,@RequestHeader("Authorization") String token){
         token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
         // Extract user ID from token
-        String username = jwtUtil.getUsernameFromToken(token);  // Ensure the method works
+        String username = jwtUtil.getUsernameFromToken(token);
         UUID userId = userRepository.findByEmail(username).getId();
         eventDto.setCreatorId(userId);
-         String bucketName = "fredeventsystem";
+        String bucketName = "fredeventsystem";
 
 
-        String key = UUID.randomUUID()+"_" + poster.getOriginalFilename(); // Or use a UUID to generate a unique filename
+        String key = UUID.randomUUID()+"_" + userId;
 
         s3Service.uploadFileToS3(bucketName, poster, key);
         String fileUrl = s3Service.getFileUrl(bucketName, key);
@@ -114,7 +114,7 @@ public class EventController {
                 new APIResponse<List<EventDto>>(true,"Events fetched successfully",eventDtos)
         );
     }
-    @GetMapping("/get/")
+    @GetMapping("/get/")//Insecure change
     public ResponseEntity<APIResponse<List<Event>>> getAllEvents() {
         Optional<List<Event>> optionalEvents = eventService.getAllEvents();
         if (optionalEvents.isPresent()) {
@@ -132,6 +132,19 @@ public class EventController {
             );
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
+    }
+    @GetMapping("/get/event/{id}")
+    public ResponseEntity<APIResponse<Event>> getEventByID(@PathVariable UUID id){
+        Optional<Event> event = eventService.getEventById(id);
+        if (event.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new APIResponse<>(false,"Event Not Found",null)
+            );
+        }
+        return ResponseEntity.ok(
+                new APIResponse<>(true,"Event fetched succesfully",event.get())
+        );
+
     }
 
     @DeleteMapping("/delete/{id}")
