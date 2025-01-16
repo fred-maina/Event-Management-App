@@ -22,6 +22,9 @@ public class TicketTypeService {
     public List<TicketType>  findAllTicketTypesByEvent(Event event){
         return ticketTypeRepository.findAllByEvent(event);
     }
+    public Optional<TicketType> findTicketTypeById(UUID id){
+        return ticketTypeRepository.findById(id);
+    }
     public Optional<TicketType> updateTicketType(UUID id, TicketTypeDTO ticketTypeDTO){
         Optional<TicketType> ticketType=ticketTypeRepository.findById(id);
         if (ticketType.isEmpty()){
