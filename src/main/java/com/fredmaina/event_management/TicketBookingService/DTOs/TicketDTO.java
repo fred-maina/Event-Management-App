@@ -21,6 +21,6 @@ import java.util.UUID;
 @AllArgsConstructor
 
 public class TicketDTO  {
-    private UUID ticketType;
-    private UUID event;
+    private UUID ticketTypeId;
+    private UUID eventId;
 }
