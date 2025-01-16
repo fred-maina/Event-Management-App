@@ -1,5 +1,6 @@
 package com.fredmaina.event_management.TicketBookingService.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fredmaina.event_management.AuthService.models.User;
 import com.fredmaina.event_management.EventCreationService.Models.Event;
 import com.fredmaina.event_management.EventCreationService.Models.TicketType;
@@ -53,15 +54,18 @@ public class Ticket {
     @Column(name = "ticket_code", nullable = false, unique = true)
     private String ticketCode;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "ticket_type", referencedColumnName = "type_id")
     private TicketType ticketType;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "event_id", referencedColumnName = "event_id")
     private Event event;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 }
