@@ -1,6 +1,8 @@
-package com.fredmaina.event_management.EventCreationService.Models;
+package com.fredmaina.event_management.TicketBookingService.Models;
 
 import com.fredmaina.event_management.AuthService.models.User;
+import com.fredmaina.event_management.EventCreationService.Models.Event;
+import com.fredmaina.event_management.EventCreationService.Models.TicketType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,7 +51,7 @@ public class Ticket {
     private TicketStatus ticketStatus = TicketStatus.UNUSED;
 
     @Column(name = "ticket_code", nullable = false, unique = true)
-    private UUID ticketCode = UUID.randomUUID();
+    private String ticketCode;
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ticket_type", referencedColumnName = "type_id")
