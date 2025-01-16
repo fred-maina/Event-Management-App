@@ -2,6 +2,7 @@ package com.fredmaina.event_management.TicketBookingService.Services;
 
 import com.fredmaina.event_management.EventCreationService.Models.Event;
 import com.fredmaina.event_management.EventCreationService.Models.TicketType;
+import com.fredmaina.event_management.EventCreationService.repositories.EventRepository;
 import com.fredmaina.event_management.EventCreationService.services.EventService;
 import com.fredmaina.event_management.EventCreationService.services.TicketTypeService;
 import com.fredmaina.event_management.TicketBookingService.Models.Ticket;
@@ -21,6 +22,8 @@ public class TicketService {
     EventService eventService;
     @Autowired
     TicketRepository ticketRepository;
+    @Autowired
+    EventRepository eventRepository;
 
 
 
@@ -36,6 +39,10 @@ public class TicketService {
         ticket.setTicketCode(TicketCodeGenerator.generateTicketCode(event.get().getEventName()));
 
         ticketRepository.save(ticket);
+        event.get().setEventCapacity(event.get().getEventCapacity()-1);
+        ticketType.get().setNumberOfTickets(ticketType.get().getNumberOfTickets()-1);
+        ticketRepository.save(ticket);
+        eventRepository.save(event.get());
         return Optional.of(ticket);
     }
     public void handlePayment(String ticketCode){
