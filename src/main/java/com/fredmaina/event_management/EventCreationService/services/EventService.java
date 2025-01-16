@@ -27,37 +27,64 @@ public class EventService {
     @Autowired
     private S3Service s3Service;
 
-    public Optional<Event> createEvent(EventDto eventDto){
+    public Optional<Event> createEvent(EventDto eventDto) {
         UUID userId = eventDto.getCreatorId();
         Optional<User> userOptional = userRepository.findById(userId);
 
-        if (userOptional.isEmpty()){
+        if (userOptional.isEmpty()) {
             return Optional.empty();
         }
         User user = userOptional.get();
-        Event event=new Event(eventDto.getId(),eventDto.getEventName(),eventDto.getEventStartDate(),eventDto.getEventEndDate(),eventDto.getEventVenue(), eventDto.getEventCapacity(),eventDto.getPosterUrl(), user);
-        eventRepository.save(event);
-        List<TicketType> ticketTypes = eventDto.getTicketType().stream().map(ticketTypeDTO -> {
-            TicketType ticketType=new TicketType();
 
+        // Create the event object without capacity
+        Event event = new Event(eventDto.getId(), eventDto.getEventName(), eventDto.getEventStartDate(),
+                eventDto.getEventEndDate(), eventDto.getEventVenue(), 0, eventDto.getPosterUrl(), user);
+
+        // Convert TicketTypeDTOs to TicketType entities
+        List<TicketType> ticketTypes = eventDto.getTicketType().stream().map(ticketTypeDTO -> {
+            TicketType ticketType = new TicketType();
             ticketType.setTypeCategory(ticketTypeDTO.getTypeCategory());
             ticketType.setNumberOfTickets(ticketTypeDTO.getNumberOfTickets());
             ticketType.setPrice(ticketTypeDTO.getPrice());
             ticketType.setEvent(event);
-            System.out.println(ticketType);
             return ticketType;
         }).toList();
+
+        // Calculate event capacity before saving the event
+        int calculatedCapacity = calculateCapacity(ticketTypes);
+        event.setEventCapacity(calculatedCapacity);
+
+        // Save the event
+        eventRepository.save(event);
+
+        // Save ticket types
         ticketTypeService.createTicketType(ticketTypes);
 
         return Optional.of(event);
     }
+
+    private int calculateCapacity(List<TicketType> ticketTypes) {
+        // Check if any ticket type has -1 for the number of tickets (unlimited capacity)
+        for (TicketType ticketType : ticketTypes) {
+            if (ticketType.getNumberOfTickets() == -1) {
+                return -1;  // Unlimited capacity
+            }
+        }
+
+        // Sum up the number of tickets for all ticket types
+        return ticketTypes.stream()
+                .mapToInt(TicketType::getNumberOfTickets)
+                .sum();
+    }
+
     public Optional<List<Event>> getEventByCreatorId(UUID id){
         List<Event> events= eventRepository.findByCreatorId(id);
 
         return events.isEmpty() ? Optional.empty():Optional.of(events);
     }
 
-    public Optional<List<Event>> getAllEvents() {
+    public Optional<List<Event>> getAllEvents()
+    {
         return Optional.of(eventRepository.findAll());
     }
     public Optional<Event> getEventById(UUID id){
