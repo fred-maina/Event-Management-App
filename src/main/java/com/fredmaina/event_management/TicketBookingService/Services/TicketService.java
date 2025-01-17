@@ -45,9 +45,13 @@ public class TicketService {
         eventRepository.save(event.get());
         return Optional.of(ticket);
     }
-    public void handlePayment(String ticketCode){
-        Ticket ticket=ticketRepository.findTicketByTicketCode(ticketCode);
-        ticket.setPaymentStatus(Ticket.PaymentStatus.APPROVED);
+    public String handleMpesaPayment(String ticketCode, String phoneNumber){
+        Optional<Ticket> ticketOptional=ticketRepository.findTicketByTicketCode(ticketCode);
+        if(ticketOptional.isEmpty()){
+            return "Ticket not found";
+        }
+        Ticket ticket=ticketOptional.get();
+       return ticketCode;
     }
 
 
