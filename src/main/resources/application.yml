@@ -4,7 +4,6 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:h$+4PrDpjVN!}
     driver-class-name: com.mysql.cj.jdbc.Driver
-    initialization-mode: always
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
@@ -13,3 +12,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  sql:
+    init:
+      mode: always
