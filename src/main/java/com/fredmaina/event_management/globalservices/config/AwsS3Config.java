@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AwsS3Config {
 
+
+
     @Bean
     public S3Client s3Client() {
         // Retrieve AWS credentials and region from environment variables
