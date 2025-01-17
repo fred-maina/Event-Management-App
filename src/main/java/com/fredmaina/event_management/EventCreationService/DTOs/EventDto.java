@@ -18,7 +18,7 @@ public class EventDto  {
     private LocalDateTime eventStartDate;
     private LocalDateTime eventEndDate;
     private String eventVenue;
-    private int eventCapacity=-1;
+    private Integer eventCapacity;
     private UUID creatorId;
     private String posterUrl;
     private List<TicketTypeDTO> ticketType;
