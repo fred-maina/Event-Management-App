@@ -118,7 +118,7 @@ public Optional<Event> updateEventInfo(EventDto eventDto,UUID id){
         if(eventDto.getEventName()!=null){
             eventOptional.get().setEventName(eventDto.getEventName());
         }
-         if(eventDto.getEventCapacity()!=0){
+         if(eventDto.getEventCapacity()!=null){
             eventOptional.get().setEventCapacity(eventDto.getEventCapacity());
         }
         if(eventDto.getEventStartDate()!=null){
@@ -130,9 +130,7 @@ public Optional<Event> updateEventInfo(EventDto eventDto,UUID id){
         if(eventDto.getPosterUrl()!=null){
             eventOptional.get().setPosterUrl(eventDto.getPosterUrl());
         }
-        if(eventDto.getEventVenue()!=null){
-            eventOptional.get().setEventEndDate(eventDto.getEventEndDate());
-        }
+
         if(eventDto.getTicketType() !=null){
             List<TicketType> ticketType= new ArrayList<>();
             eventDto.getTicketType().forEach(ticketTypeDTO -> {
