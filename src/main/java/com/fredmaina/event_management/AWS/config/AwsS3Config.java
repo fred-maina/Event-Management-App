@@ -1,4 +1,4 @@
-package com.fredmaina.event_management.globalservices.config;
+package com.fredmaina.event_management.AWS.config;
 
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
