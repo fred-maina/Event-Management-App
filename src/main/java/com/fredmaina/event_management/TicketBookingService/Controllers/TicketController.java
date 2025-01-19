@@ -9,7 +9,7 @@ import com.fredmaina.event_management.TicketBookingService.Models.Ticket;
 import com.fredmaina.event_management.TicketBookingService.Services.MpesaAuthService;
 import com.fredmaina.event_management.TicketBookingService.Services.MpesaSTKPushService;
 import com.fredmaina.event_management.TicketBookingService.Services.TicketService;
-import com.fredmaina.event_management.globalservices.DTOs.APIResponse;
+import com.fredmaina.event_management.AWS.DTOs.APIResponse;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
