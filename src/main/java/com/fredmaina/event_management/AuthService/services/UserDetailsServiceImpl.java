@@ -23,6 +23,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         // Return a UserDetails object with user information
         return User.builder()
+                .disabled(!user.isVerified())
                 .username(user.getEmail())
                 .password(user.getPassword())
                 .roles("USER")  // Assuming all users have a default role of USER
