@@ -4,9 +4,13 @@ import com.fredmaina.event_management.AuthService.DTOs.AuthResponse;
 import com.fredmaina.event_management.AuthService.DTOs.RegisterRequest;
 import com.fredmaina.event_management.AuthService.DTOs.LoginRequest;
 import com.fredmaina.event_management.AuthService.models.User;
+import com.fredmaina.event_management.AuthService.models.VerificationRequest;
 import com.fredmaina.event_management.AuthService.repositories.UserRepository;
+import com.fredmaina.event_management.AuthService.repositories.VerificationRequestRepository;
+import com.fredmaina.event_management.AuthService.utils.GenerateCode;
 import com.fredmaina.event_management.AuthService.utils.JWTUtil;
 import com.fredmaina.event_management.AuthService.utils.PasswordUtil;
+import com.fredmaina.event_management.Email.Service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,7 +26,14 @@ public class AuthService {
     private UserRepository userRepository;
 
     @Autowired
+    private VerificationRequestRepository verificationRequestRepository;
+
+
+
+    @Autowired
     private JWTUtil jwtUtil;
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
@@ -43,8 +54,10 @@ public class AuthService {
 
         try {
             userRepository.save(user);
-            String token = jwtUtil.generateToken(user.getEmail()); // Generate token using the email
-            return new AuthResponse(true, "User registered successfully", user, token);
+            String token = jwtUtil.generateToken(user.getEmail());
+            int code= generateVerificationCode(user.getEmail());// Generate token using the email
+            emailService.sendEmail(registerRequest.getEmail(), "Verification Code For Eventify","Submit the following verification code: "+code);
+            return new AuthResponse(true, "Check your email for your verication code", user, token);
         } catch (Exception e) {
             return new AuthResponse(false, "Error registering user: " + e.getMessage(), null, null);
         }
@@ -66,4 +79,29 @@ public class AuthService {
         }
     }
 
+    public AuthResponse verifyUser(int code,String token) {
+        User user= userRepository.findByEmail(jwtUtil.getUsernameFromToken(token));
+        if (user.isVerified()){return new AuthResponse(false,"user is already verified please proceed to log in",null,null);}
+        Optional<VerificationRequest> verificationRequestOptional = verificationRequestRepository.findByUser(user);
+        if (verificationRequestOptional.isEmpty()) {
+            return new AuthResponse(false,"User does not exist. Register and try Again", null, null);
+        }
+        VerificationRequest verificationRequest = verificationRequestOptional.get();
+        if(verificationRequest.getVerificationCode()==code){
+            user.setVerified(true);
+            userRepository.save(user);
+            verificationRequestRepository.delete(verificationRequest);
+            return new AuthResponse(true, "User verified successfully", null, null);
+        }
+        return new AuthResponse(false, "Invalid verification code", null, null);
+
+
+    }
+    public int generateVerificationCode(String email) {
+        int code=GenerateCode.generateCode();
+        User user=userRepository.findByEmail(email);
+        VerificationRequest verificationRequest = new VerificationRequest(user,code);
+        verificationRequestRepository.save(verificationRequest);
+        return code;
+    }
 }
