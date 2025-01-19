@@ -1,9 +1,8 @@
-package com.fredmaina.event_management.globalservices.DTOs;
+package com.fredmaina.event_management.AWS.DTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.logging.log4j.message.Message;
 
 @Getter
 @Setter
