@@ -1,16 +1,18 @@
 package com.fredmaina.event_management.EventCreationService.Contollers;
 
 import com.fredmaina.event_management.AuthService.utils.JWTUtil;
+import com.fredmaina.event_management.Email.Service.EmailService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
-import com.fredmaina.event_management.globalservices.DTOs.APIResponse;
+import com.fredmaina.event_management.AWS.DTOs.APIResponse;
 import com.fredmaina.event_management.EventCreationService.DTOs.EventDto;
 import com.fredmaina.event_management.EventCreationService.DTOs.TicketTypeDTO;
 import com.fredmaina.event_management.EventCreationService.Models.Event;
 import com.fredmaina.event_management.AuthService.models.User;
 import com.fredmaina.event_management.AuthService.repositories.UserRepository;
 import com.fredmaina.event_management.EventCreationService.services.EventService;
-import com.fredmaina.event_management.globalservices.services.S3Service;
+import com.fredmaina.event_management.AWS.services.S3Service;
 import com.fredmaina.event_management.EventCreationService.services.TicketTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,9 +24,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+
 @RestController
 @RequestMapping("api/events")
-@CrossOrigin(origins = "*")
 public class EventController {
     @Autowired
     private EventService eventService;
@@ -36,6 +38,10 @@ public class EventController {
     private S3Service s3Service;
     @Autowired
     private JWTUtil jwtUtil;
+    @Autowired
+    private EmailService emailService;
+
+
 
     @PostMapping(value="/create",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<APIResponse<Event>> createEvent(@RequestPart("event") @Valid EventDto eventDto, @RequestPart("poster") MultipartFile poster,@RequestHeader("Authorization") String token){
@@ -69,32 +75,48 @@ public class EventController {
 
     }
     @GetMapping("/get/all")
-    public ResponseEntity<APIResponse<List<EventDto>>> getEventsByCreatorFromToken(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<APIResponse<Page<EventDto>>> getEventsByCreatorFromToken(@RequestHeader("Authorization") String token,@RequestParam int page,@RequestParam int size) {
         token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
 
         // Extract user ID from token
         String username = jwtUtil.getUsernameFromToken(token);  // Ensure the method works
         UUID userId = userRepository.findByEmail(username).getId();
 
-        return getEventsByCreator(userId);  // Call your event fetching method
+        return getEventsByCreator(userId,page,size);  // Call your event fetching method
+    }
+    @GetMapping("/get/{creator_id}")
+    public ResponseEntity<APIResponse<Page<EventDto>>> getEventsByCreator(
+            @PathVariable UUID creator_id,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        Optional<User> optionalUser = userRepository.findById(creator_id);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new APIResponse<>(false, "Error Fetching Events: User with ID: " + creator_id + " does not exist.", null)
+            );
+        }
+
+        // Fetch paginated events directly
+        Optional<Page<Event>> optionalEvents = eventService.getEventByCreatorId(creator_id, page, size);
+        if (optionalEvents.isEmpty() || optionalEvents.get().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new APIResponse<>(false, "Error fetching Events: User with ID: " + creator_id + " does not have any events created.", null)
+            );
+        }
+
+        Page<EventDto> eventDtos = getEventDtos(optionalEvents);
+
+        return ResponseEntity.ok(
+                new APIResponse<>(true, "Events fetched successfully", eventDtos)
+        );
     }
 
-    @GetMapping("/get/{creator_id}")
-    public ResponseEntity<APIResponse<List<EventDto>>> getEventsByCreator(@PathVariable UUID creator_id){
-        Optional<User> optionalUser = userRepository.findById(creator_id);
-        if (optionalUser.isEmpty()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    new APIResponse<>(false,"Error Fetching Events: User with ID: "+creator_id+" does not exist.",null)
-            );
+    private Page<EventDto> getEventDtos(Optional<Page<Event>> optionalEvents) {
+        Page<Event> events = optionalEvents.get();
 
-        }
-        if (eventService.getEventByCreatorId(creator_id).isEmpty()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new APIResponse<>(false,"Error fetching Events: User with id: "+creator_id+" does not have any events created.",null)
-            );
-        }
-        List<Event> events =eventService.getEventByCreatorId(creator_id).get();
-        List<EventDto> eventDtos = events.stream().map(event -> new EventDto(
+        // Map Event -> EventDto while preserving pagination
+        Page<EventDto> eventDtos = events.map(event -> new EventDto(
                 event.getId(),
                 event.getEventName(),
                 event.getEventStartDate(),
@@ -103,16 +125,27 @@ public class EventController {
                 event.getEventCapacity(),
                 event.getCreator().getId(),
                 event.getPosterUrl(),
-                ticketTypeService.findAllTicketTypesByEvent(event).stream().map(ticketType-> new TicketTypeDTO(
+                ticketTypeService.findAllTicketTypesByEvent(event).stream().map(ticketType -> new TicketTypeDTO(
                         ticketType.getId(),
                         ticketType.getTypeCategory(),
                         ticketType.getNumberOfTickets(),
                         ticketType.getPrice(),
-                        ticketType.getEvent().getId())).toList() )).toList();
+                        ticketType.getEvent().getId()
+                )).toList()
+        ));
+        return eventDtos;
+    }
 
-        return ResponseEntity.ok(
-                new APIResponse<List<EventDto>>(true,"Events fetched successfully",eventDtos)
+
+    @GetMapping("/send-email")
+    public String sendEmail(@RequestParam
+                            String email) {
+        emailService.sendEmail(
+                email,
+                "Test Email from Spring Boot",
+                "Hello! This is a test email from Spring Boot."
         );
+        return "Email Sent!";
     }
     @GetMapping("/get/")//Insecure change
     public ResponseEntity<APIResponse<List<Event>>> getAllEvents() {
