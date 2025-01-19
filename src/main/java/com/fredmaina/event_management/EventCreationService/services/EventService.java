@@ -6,8 +6,11 @@ import com.fredmaina.event_management.EventCreationService.Models.TicketType;
 import com.fredmaina.event_management.AuthService.models.User;
 import com.fredmaina.event_management.EventCreationService.repositories.EventRepository;
 import com.fredmaina.event_management.AuthService.repositories.UserRepository;
-import com.fredmaina.event_management.globalservices.services.S3Service;
+import com.fredmaina.event_management.AWS.services.S3Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
@@ -77,8 +80,9 @@ public class EventService {
                 .sum();
     }
 
-    public Optional<List<Event>> getEventByCreatorId(UUID id){
-        List<Event> events= eventRepository.findByCreatorId(id);
+    public Optional<Page<Event>> getEventByCreatorId(UUID id,int page, int size){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Event> events = eventRepository.findByCreatorId(id,pageable);
 
         return events.isEmpty() ? Optional.empty():Optional.of(events);
     }
