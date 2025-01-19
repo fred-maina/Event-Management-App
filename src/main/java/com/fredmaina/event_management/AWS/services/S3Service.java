@@ -1,4 +1,4 @@
-package com.fredmaina.event_management.globalservices.services;
+package com.fredmaina.event_management.AWS.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -10,11 +10,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Service
 public class S3Service {
