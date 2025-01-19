@@ -24,6 +24,9 @@ public class User {
     @Column(name="last_name")
     private String lastName ;
 
+    @Column(name="verified")
+    private boolean verified;
+    
     private String email ;
     @JsonIgnore
     private String password ;
