@@ -43,7 +43,7 @@ public class Event {
 
     @JoinColumn(name="creator_id",referencedColumnName = "user_id")
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
     private User creator;
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
