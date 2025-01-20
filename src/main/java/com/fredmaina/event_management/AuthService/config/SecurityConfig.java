@@ -38,7 +38,9 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Apply global CORS configuration
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/auth/verify",
                                 "/api/ticket/mpesa/**"
                         ).permitAll() // Allow unauthenticated access to these endpoints
                         .anyRequest().authenticated() // Require authentication for all other endpoints
