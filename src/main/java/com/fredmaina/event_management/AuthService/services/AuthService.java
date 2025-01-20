@@ -56,8 +56,8 @@ public class AuthService {
             userRepository.save(user);
             String token = jwtUtil.generateToken(user.getEmail());
             int code= generateVerificationCode(user.getEmail());// Generate token using the email
-            emailService.sendEmail(registerRequest.getEmail(), "Verification Code For Eventify","Submit the following verification code: "+code);
-            return new AuthResponse(true, "Check your email for your verication code", user, token);
+            emailService.sendHtmlEmail(registerRequest.getEmail(),code,registerRequest.getFirstName()+" "+registerRequest.getLastName());
+            return new AuthResponse(true, "Check your email for your verification code", user, token);
         } catch (Exception e) {
             return new AuthResponse(false, "Error registering user: " + e.getMessage(), null, null);
         }
@@ -103,5 +103,11 @@ public class AuthService {
         VerificationRequest verificationRequest = new VerificationRequest(user,code);
         verificationRequestRepository.save(verificationRequest);
         return code;
+    }
+    public AuthResponse deleteUser(String token) {
+        User user = userRepository.findByEmail(jwtUtil.getUsernameFromToken(token));
+        userRepository.delete(user);
+        return new AuthResponse(true, "User deleted successfully", null, null);
+
     }
 }
