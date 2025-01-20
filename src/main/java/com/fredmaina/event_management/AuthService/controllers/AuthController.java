@@ -7,7 +7,10 @@ import com.fredmaina.event_management.AuthService.services.AuthService;
 import org.apache.tomcat.util.http.parser.Authorization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import software.amazon.awssdk.services.chime.model.DeleteAccountRequest;
 import software.amazon.awssdk.services.kms.model.VerifyRequest;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -40,9 +43,14 @@ public class AuthController {
         return authService.authenticateUser(loginRequest);
     }
     @PostMapping("/verify")
-    public AuthResponse verify(@RequestBody int code, @RequestHeader("Authorization") String token) {
+    public AuthResponse verify(@RequestBody Map<String,Integer> verificationRequest, @RequestHeader("Authorization") String token) {
         token = token.replace("Bearer ", "").trim();
-        return authService.verifyUser(code,token);
 
+        return authService.verifyUser(verificationRequest.get("verification-code"),token);
+    }
+    @DeleteMapping("/delete-account")
+    public AuthResponse deleteAccount(@RequestHeader("Authorization") String token) {
+        token = token.replace("Bearer ", "").trim();
+        return authService.deleteUser(token);
     }
 }
