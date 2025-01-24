@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -24,6 +23,7 @@ public class PaymentRequestDTO {
     @JsonProperty("Password")
     private final String password = generatePassword();
 
+
     private String generatePassword() {
         String encodedPassword=businessShortCode+"bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"+this.timestamp;
         return Base64.getEncoder().encodeToString(encodedPassword.getBytes());
@@ -33,7 +33,7 @@ public class PaymentRequestDTO {
     private final String transactionType = "CustomerPayBillOnline";
 
     @JsonProperty("Amount")
-    private final int amount = 1;
+    private int amount;
 
     @JsonProperty("PartyA")
     private Long partyA;
@@ -45,10 +45,10 @@ public class PaymentRequestDTO {
     private Long phoneNumber;
 
     @JsonProperty("CallBackURL")
-    private final String callBackURL = "https://790b-41-89-10-241.ngrok-free.app/api/ticket/mpesa/test";
+    private final String callBackURL ="https://f7e9-41-89-10-241.ngrok-free.app/api/ticket/mpesa/test";
 
     @JsonProperty("AccountReference")
-    private final String accountReference = "FredEvents";
+    private  String accountReference ;
 
     @JsonProperty("TransactionDesc")
     private String transactionDescription;
