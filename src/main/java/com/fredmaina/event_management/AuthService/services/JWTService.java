@@ -1,4 +1,4 @@
-package com.fredmaina.event_management.AuthService.utils;
+package com.fredmaina.event_management.AuthService.services;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -7,10 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Service
-public class JWTUtil {
+public class JWTService {
 
     @Value("${jwt.secret}")
     private String secret;
@@ -19,9 +18,10 @@ public class JWTUtil {
     private long expiration;
 
 
-    public String generateToken(String username) {
+    public String generateToken(String username,String action) {
         return Jwts.builder()
                 .setSubject(username)
+                .claim("action",action)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(SignatureAlgorithm.HS512, secret)
@@ -34,6 +34,15 @@ public class JWTUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
+    public String getClaimFromToken(String token, String claimKey) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.get(claimKey, String.class); // Get claim by key
+    }
+    public boolean isTokenForAction(String token, String expectedAction) {
+        String action = getClaimFromToken(token, "action");
+        return expectedAction.equals(action);
+    }
+
 
     public boolean isTokenValid(String token) {
         try {
