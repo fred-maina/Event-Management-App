@@ -1,6 +1,6 @@
 package com.fredmaina.event_management.EventCreationService.Contollers;
 
-import com.fredmaina.event_management.AuthService.utils.JWTUtil;
+import com.fredmaina.event_management.AuthService.services.JWTService;
 import com.fredmaina.event_management.Email.Service.EmailService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -37,7 +37,7 @@ public class EventController {
     @Autowired
     private S3Service s3Service;
     @Autowired
-    private JWTUtil jwtUtil;
+    private JWTService jwtService;
     @Autowired
     private EmailService emailService;
 
@@ -47,7 +47,7 @@ public class EventController {
     public ResponseEntity<APIResponse<Event>> createEvent(@RequestPart("event") @Valid EventDto eventDto, @RequestPart("poster") MultipartFile poster,@RequestHeader("Authorization") String token){
         token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
         // Extract user ID from token
-        String username = jwtUtil.getUsernameFromToken(token);
+        String username = jwtService.getUsernameFromToken(token);
         UUID userId = userRepository.findByEmail(username).getId();
         eventDto.setCreatorId(userId);
         String bucketName = "fredeventsystem";
@@ -79,7 +79,7 @@ public class EventController {
         token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
 
         // Extract user ID from token
-        String username = jwtUtil.getUsernameFromToken(token);  // Ensure the method works
+        String username = jwtService.getUsernameFromToken(token);  // Ensure the method works
         UUID userId = userRepository.findByEmail(username).getId();
 
         return getEventsByCreator(userId,page,size);  // Call your event fetching method
@@ -190,7 +190,7 @@ public class EventController {
         }
         token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
         // Extract user ID from token
-        String username = jwtUtil.getUsernameFromToken(token);
+        String username = jwtService.getUsernameFromToken(token);
         if(!optionalEvent.get().getCreator().getEmail().equals(username)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(
@@ -211,7 +211,7 @@ public class EventController {
         }
         token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
         // Extract user ID from token
-        String username = jwtUtil.getUsernameFromToken(token);
+        String username = jwtService.getUsernameFromToken(token);
         if(!eventOptional.get().getCreator().getEmail().equals(username)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(
