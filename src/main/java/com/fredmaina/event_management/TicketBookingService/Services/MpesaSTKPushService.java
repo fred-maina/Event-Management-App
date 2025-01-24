@@ -9,8 +9,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Objects;
-
 @Log4j2
 @Service
 public class MpesaSTKPushService {
@@ -25,12 +23,14 @@ public class MpesaSTKPushService {
         this.restTemplate = restTemplate;
     }
 
-    public ResponseEntity<PaymentResponseDTO> sendSTKPush(String ticketNumber, Long phoneNumber) throws JsonProcessingException {
+    public ResponseEntity<PaymentResponseDTO> sendSTKPush(String ticketNumber, Long phoneNumber,int amount) throws JsonProcessingException {
         // Create the payment request payload
         PaymentRequestDTO paymentRequestDTO = new PaymentRequestDTO();
         paymentRequestDTO.setPartyA(phoneNumber);
         paymentRequestDTO.setTransactionDescription(ticketNumber);
         paymentRequestDTO.setPhoneNumber(phoneNumber);
+        paymentRequestDTO.setAmount(amount);
+        paymentRequestDTO.setAccountReference(ticketNumber);
 
         // Add headers for the request
         HttpHeaders headers = new HttpHeaders();
