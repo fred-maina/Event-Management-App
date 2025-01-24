@@ -2,7 +2,9 @@ package com.fredmaina.event_management.AuthService.config;
 
 
 import com.fredmaina.event_management.AuthService.services.UserDetailsServiceImpl;
-import com.fredmaina.event_management.AuthService.utils.JWTUtil;
+import com.fredmaina.event_management.AuthService.services.JWTService;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,10 +16,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
+@Log4j2
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
-    private JWTUtil jwtService;
+    private JWTService jwtService;
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
@@ -40,7 +43,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
 
+
             if (jwtService.isTokenValid(jwt)&& userDetails.isEnabled()) {
+                    String action = jwtService.getClaimFromToken(jwt, "action");
+
+                    // Restrict token usage based on action claim
+                    if ("reset-password".equals(action)) {
+                        if (!request.getRequestURI().startsWith("/api/auth/reset-password")) {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.getWriter().write("Invalid token for this operation");
+                            return;
+                        }
+                    }
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
