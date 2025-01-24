@@ -41,7 +41,10 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/auth/verify",
-                                "/api/ticket/mpesa/**"
+                                "/api/ticket/mpesa/**",
+                                "/api/auth/upload-verification-code",
+                                "/api/auth/forgot-password",
+                                "/error"
                         ).permitAll() // Allow unauthenticated access to these endpoints
                         .anyRequest().authenticated() // Require authentication for all other endpoints
                 )
