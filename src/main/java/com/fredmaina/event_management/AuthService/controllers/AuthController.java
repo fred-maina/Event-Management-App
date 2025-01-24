@@ -1,5 +1,6 @@
 package com.fredmaina.event_management.AuthService.controllers;
 
+import com.fredmaina.event_management.AWS.services.LambdaService;
 import com.fredmaina.event_management.AuthService.DTOs.AuthResponse;
 import com.fredmaina.event_management.AuthService.DTOs.RegisterRequest;
 import com.fredmaina.event_management.AuthService.DTOs.LoginRequest;
@@ -8,7 +9,9 @@ import org.apache.tomcat.util.http.parser.Authorization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import software.amazon.awssdk.services.chime.model.DeleteAccountRequest;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.ForgotPasswordRequest;
 import software.amazon.awssdk.services.kms.model.VerifyRequest;
+import software.amazon.awssdk.services.workmail.model.ResetPasswordRequest;
 
 import java.util.Map;
 
@@ -20,6 +23,8 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+    @Autowired
+    private LambdaService lambdaService;
 
     /**
      * Register a new user.
@@ -53,4 +58,28 @@ public class AuthController {
         token = token.replace("Bearer ", "").trim();
         return authService.deleteUser(token);
     }
+    @GetMapping("/lambda-test")
+    public String testLambda() {
+        return lambdaService.invokeLambda();
+    }
+    @PostMapping("/forgot-password")
+    public AuthResponse forgotPassword(@RequestBody Map<String,String> forgotPasswordRequest) {
+        String email = forgotPasswordRequest.get("email");
+        authService.sendForgotPasswordCode(email);
+        return new AuthResponse(true,"verification code has been sent to your email",null,null);
+    }
+    @PostMapping("/upload-verification-code")
+    public AuthResponse uploadVerificationCode(@RequestBody Map<String,String> verificationCodeRequest) {
+        return authService.verifyPasswordResetCode(verificationCodeRequest.get("email"), Integer.parseInt(verificationCodeRequest.get("code")));
+    }
+    @PostMapping("reset-password")
+    public AuthResponse resetPassword(@RequestHeader("Authorization") String token
+            ,@RequestBody Map<String,String> resetPasswordRequest) {
+        token = token.replace("Bearer ", "").trim();
+        return authService.resetPassword(token,resetPasswordRequest.get("password"));
+
+    }
+
+
+
 }
