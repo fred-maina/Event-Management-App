@@ -44,7 +44,12 @@ public class SecurityConfig {
                                 "/api/ticket/mpesa/**",
                                 "/api/auth/upload-verification-code",
                                 "/api/auth/forgot-password",
-                                "/error"
+                                "/error",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/webjars/**",
+                                "/favicon.ico"
                         ).permitAll() // Allow unauthenticated access to these endpoints
                         .anyRequest().authenticated() // Require authentication for all other endpoints
                 )
