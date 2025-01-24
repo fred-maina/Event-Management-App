@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.util.Objects;
+
 
 @Service
 public class EmailService {
@@ -28,25 +30,38 @@ public class EmailService {
         javaMailSender.send(message);
     }
     @Async
-    public void sendHtmlEmail(String to, int verificationCode,String fullName) {
-        Context context = new Context();
-        context.setVariable("verificationCode", verificationCode);
-        context.setVariable("fullName", fullName);
-
-        String htmlContent = templateEngine.process("email-verification", context);
+    public void sendHtmlEmail(String to, int code,String fullName,String subject) {
 
         MimeMessage message = javaMailSender.createMimeMessage();
         try {
+
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setTo(to);
-            helper.setSubject("Account Verification");
-            helper.setText(htmlContent, true);
+            helper.setSubject(subject);
+            helper.setText(Objects.requireNonNull(htmlContent(subject, code, fullName)), true);
             javaMailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();
             // Handle exception
 
         }
+    }
+    private String htmlContent(String subject,int code,String fullName) {
+        Context context = new Context();
+        context.setVariable("fullName", fullName);
+
+        switch (subject){
+            case "resetPassword":
+                context.setVariable("resetCode", code);
+                return templateEngine.process("password-reset", context);
+            case "verificationCode":
+                context.setVariable("verificationCode", code);
+                return templateEngine.process("email-verification", context);
+            default:
+                return null;
+
+        }
+
     }
 
 
