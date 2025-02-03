@@ -14,7 +14,7 @@ public class AwsS3Config {
     @Bean
     public S3Client s3Client() {
         // Retrieve AWS credentials and region from environment variables
-        String awsRegion = System.getenv("AWS_REGION");                     // Replace with your desired region
+        String awsRegion = "eu-north-1";                   // Replace with your desired region
         String awsAccessKey = System.getenv("AWS_ACCESS_KEY_ID");          // Replace with your access key
         String awsSecretKey = System.getenv("AWS_SECRET_ACCESS_KEY");      // Replace with your secret key
 
