@@ -2,11 +2,13 @@ package com.fredmaina.event_management.EventCreationService.services;
 
 import com.fredmaina.event_management.EventCreationService.DTOs.EventDto;
 import com.fredmaina.event_management.EventCreationService.Models.Event;
+import com.fredmaina.event_management.EventCreationService.Models.EventType;
 import com.fredmaina.event_management.EventCreationService.Models.TicketType;
 import com.fredmaina.event_management.AuthService.models.User;
 import com.fredmaina.event_management.EventCreationService.repositories.EventRepository;
 import com.fredmaina.event_management.AuthService.repositories.UserRepository;
 import com.fredmaina.event_management.AWS.services.S3Service;
+import com.fredmaina.event_management.EventCreationService.repositories.EventTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,10 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class EventService {
@@ -29,6 +28,8 @@ public class EventService {
     private UserRepository userRepository;
     @Autowired
     private S3Service s3Service;
+    @Autowired
+    private EventTypeRepository eventTypeRepository;
 
     public Optional<Event> createEvent(EventDto eventDto) {
         UUID userId = eventDto.getCreatorId();
@@ -39,11 +40,28 @@ public class EventService {
         }
         User user = userOptional.get();
 
+
         // Create the event object without capacity
         Event event = new Event(eventDto.getId(), eventDto.getEventName(), eventDto.getEventStartDate(),
-                eventDto.getEventEndDate(), eventDto.getEventVenue(), 0, eventDto.getPosterUrl(), user);
+                eventDto.getEventEndDate(), eventDto.getEventVenue(), 0, eventDto.getPosterUrl(), user,
+                this.getEventTypesById(eventDto.getEventTypeIds()) );
 
-        // Convert TicketTypeDTOs to TicketType entities
+
+        Set<Long> eventTypeIds = eventDto.getEventTypeIds();
+
+// Loop over each eventTypeId and retrieve the corresponding EventType entity
+        Set<EventType> eventTypes = new HashSet<>();
+        for (Long eventTypeId : eventTypeIds) {
+            // Assuming you have an EventType repository to fetch the EventType by ID
+            EventType eventType = eventTypeRepository.findById(eventTypeId)
+                    .orElseThrow(() -> new RuntimeException("EventType not found for id: " + eventTypeId));
+
+            // Add the EventType to the set of event types
+            eventTypes.add(eventType);
+        }
+
+
+        event.setEventTypes(eventTypes);
         List<TicketType> ticketTypes = eventDto.getTicketType().stream().map(ticketTypeDTO -> {
             TicketType ticketType = new TicketType();
             ticketType.setTypeCategory(ticketTypeDTO.getTypeCategory());
@@ -52,6 +70,7 @@ public class EventService {
             ticketType.setEvent(event);
             return ticketType;
         }).toList();
+
 
         // Calculate event capacity before saving the event
         int calculatedCapacity = calculateCapacity(ticketTypes);
@@ -145,6 +164,25 @@ public Optional<Event> updateEventInfo(EventDto eventDto,UUID id){
         }
     return  Optional.of(eventRepository.save(eventOptional.get()));
 
+    }
+    public List<EventType> getAllEventTypes(){
+        return eventTypeRepository.findAll();
+    }
+    public Set<EventType> getEventTypesById(Set<Long> eventTypeIds){
+        Set<EventType> eventTypes = new HashSet<>();
+        for (Long eventTypeId : eventTypeIds) {
+            eventTypeRepository.findById(eventTypeId).ifPresent(eventTypes::add);
+        }
+        return eventTypes;
+
+    }
+    public EventType getEventTypeById(Long id){
+        Optional<EventType> eventType = eventTypeRepository.findById(id);
+        return eventType.orElse(null);
+    }
+    public EventType getEventTypeByName(String name){
+        Optional<EventType> eventType = eventTypeRepository.findByName(name);
+        return eventType.orElse(null);
     }
 
 }
