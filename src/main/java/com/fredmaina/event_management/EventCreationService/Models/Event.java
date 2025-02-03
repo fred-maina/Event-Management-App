@@ -6,9 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Setter
@@ -49,7 +47,15 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TicketType> ticketTypes = new ArrayList<>();
 
-    public Event(UUID id, String eventName, LocalDateTime eventStartDate, LocalDateTime eventEndDate, String eventVenue, int eventCapacity, String posterUrl, User creator) {
+    @ManyToMany
+    @JoinTable(
+            name = "event_event_type",  // Name of the join table
+            joinColumns = @JoinColumn(name = "event_id"),  // Foreign key to Event
+            inverseJoinColumns = @JoinColumn(name = "event_type_id")  // Foreign key to EventType
+    )
+    private Set<EventType> eventTypes = new HashSet<>();
+
+    public Event(UUID id, String eventName, LocalDateTime eventStartDate, LocalDateTime eventEndDate, String eventVenue, int eventCapacity, String posterUrl, User creator,Set<EventType> eventTypes) {
         this.id = id;
         this.eventName = eventName;
         this.eventStartDate = eventStartDate;
@@ -58,6 +64,7 @@ public class Event {
         this.eventCapacity = eventCapacity;
         this.posterUrl = posterUrl;
         this.creator = creator;
+        this.eventTypes=eventTypes;
 
     }
 }
