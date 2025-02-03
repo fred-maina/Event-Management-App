@@ -2,6 +2,7 @@ package com.fredmaina.event_management.EventCreationService.Contollers;
 
 import com.fredmaina.event_management.AuthService.services.JWTService;
 import com.fredmaina.event_management.Email.Service.EmailService;
+import com.fredmaina.event_management.EventCreationService.Models.EventType;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -59,6 +60,7 @@ public class EventController {
         String fileUrl = s3Service.getFileUrl(bucketName, key);
         eventDto.setPosterUrl(fileUrl);
 
+
         Optional<User> userOptional = userRepository.findById(eventDto.getCreatorId());
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
@@ -87,7 +89,7 @@ public class EventController {
     @GetMapping("/get/{creator_id}")
     public ResponseEntity<APIResponse<Page<EventDto>>> getEventsByCreator(
             @PathVariable UUID creator_id,
-            @RequestParam int page,
+            @RequestParam() int page,
             @RequestParam int size
     ) {
         Optional<User> optionalUser = userRepository.findById(creator_id);
@@ -131,7 +133,8 @@ public class EventController {
                         ticketType.getNumberOfTickets(),
                         ticketType.getPrice(),
                         ticketType.getEvent().getId()
-                )).toList()
+                )).toList(),
+                event.getEventTypes()
         ));
         return eventDtos;
     }
@@ -220,9 +223,19 @@ public class EventController {
         }
         Optional<Event> updatedEvent= eventService.updateEventInfo(eventDto,eventId);
         return ResponseEntity.status(HttpStatus.OK).body(
-                new APIResponse<>(true,"Event Info Updated successfully",updatedEvent.get())
+                new APIResponse<>(true,"Event Info Updated successfully",updatedEvent.get()));
+                 }
+
+    @GetMapping("/event-types")
+    public ResponseEntity<APIResponse<List<EventType>>>  getAllEventTypes(){
+        List<EventType> eventTypes = eventService.getAllEventTypes();
+        if(eventTypes.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new APIResponse<>(false,"No Events Found",null)
+            );
+        }
+        return ResponseEntity.ok(
+                new APIResponse<>(true,"Events Fetched Successfully",eventTypes)
         );
-
     }
-
 }
