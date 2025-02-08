@@ -89,8 +89,8 @@ public class EventController {
     @GetMapping("/get/{creator_id}")
     public ResponseEntity<APIResponse<Page<EventDto>>> getEventsByCreator(
             @PathVariable UUID creator_id,
-            @RequestParam() int page,
-            @RequestParam int size
+            @RequestParam(required = false) int page,
+            @RequestParam(required = false) int size
     ) {
         Optional<User> optionalUser = userRepository.findById(creator_id);
         if (optionalUser.isEmpty()) {
@@ -151,17 +151,20 @@ public class EventController {
         return "Email Sent!";
     }
     @GetMapping("/get/")//Insecure change
-    public ResponseEntity<APIResponse<List<Event>>> getAllEvents() {
-        Optional<List<Event>> optionalEvents = eventService.getAllEvents();
+    public ResponseEntity<APIResponse<Page<Event>>> getAllEvents(
+            @RequestParam() int page,
+            @RequestParam int size
+    ) {
+        Optional<Page<Event>> optionalEvents = eventService.getAllEvents(page,size);
         if (optionalEvents.isPresent()) {
-            APIResponse<List<Event>> response = new APIResponse<>(
+            APIResponse<Page<Event>> response = new APIResponse<>(
                     true,
                     "Events Fetched Successfully",
                     optionalEvents.get()
             );
             return ResponseEntity.ok(response);
         } else {
-            APIResponse<List<Event>> response = new APIResponse<>(
+            APIResponse<Page<Event>> response = new APIResponse<>(
                     false,
                     "No Events Found",
                     null
