@@ -12,5 +12,4 @@ import java.util.UUID;
 @Repository
 public interface EventRepository extends JpaRepository<Event, UUID> {
     public Page<Event> findByCreatorId(UUID id, Pageable pageable);
-
 }
