@@ -106,9 +106,10 @@ public class EventService {
         return events.isEmpty() ? Optional.empty():Optional.of(events);
     }
 
-    public Optional<List<Event>> getAllEvents()
+    public Optional<Page<Event>> getAllEvents(int page,int size)
     {
-        return Optional.of(eventRepository.findAll());
+        Pageable pageable = PageRequest.of(page, size);
+        return Optional.of(eventRepository.findAll(pageable));
     }
     public Optional<Event> getEventById(UUID id){
         return eventRepository.findById(id);
