@@ -81,28 +81,49 @@ public class AuthService {
         }
     }
 
-    public AuthResponse verifyUser(int code,String token) {
-        User user= userRepository.findByEmail(jwtService.getUsernameFromToken(token));
-        if (user.isVerified()){return new AuthResponse(false,"user is already verified please proceed to log in",null,null);}
-        Optional<VerificationRequest> verificationRequestOptional = verificationRequestRepository.findByUser(user);
-        if (verificationRequestOptional.isEmpty()) {
-            return new AuthResponse(false,"User does not exist. Register and try Again", null, null);
-        }
-        VerificationRequest verificationRequest = verificationRequestOptional.get();
-        if(verificationRequest.getVerificationCode()==code){
-            user.setVerified(true);
-            userRepository.save(user);
-            verificationRequestRepository.delete(verificationRequest);
-            return new AuthResponse(true, "User verified successfully", null, null);
-        }
-        return new AuthResponse(false, "Invalid verification code", null, null);
+    public AuthResponse verifyUser(String code, String email) {
+
+        User user = userRepository.findByEmail(email);
 
 
+        if (user == null) {
+            return new AuthResponse(false, "User does not exist. Register and try again.", null, null);
+        }
+
+        if (user.isVerified()) {
+            return new AuthResponse(false, "User is already verified. Please proceed to log in.", null, null);
+        }
+
+        Optional<VerificationRequest> optionalRequest = verificationRequestRepository.findByUser(user);
+
+        if (optionalRequest.isEmpty()) {
+            return new AuthResponse(false, "No verification request found.", null, null);
+        }
+
+        VerificationRequest verificationRequest = optionalRequest.get();
+
+        // Check verification type
+        if (verificationRequest.getVerificationType() != VerificationRequest.VerificationType.VERIFY_EMAIL) {
+            return new AuthResponse(false, "Invalid verification request type.", null, null);
+        }
+
+        // Validate code
+        if (verificationRequest.getVerificationCode() != Integer.parseInt(code)) {
+            return new AuthResponse(false, "Invalid verification code.", null, null);
+        }
+
+        // Mark user as verified and clean up
+        user.setVerified(true);
+        userRepository.save(user);
+        verificationRequestRepository.delete(verificationRequest);
+
+        return new AuthResponse(true, "User verified successfully.", null, null);
     }
+
     public int generateVerificationCode(String email) {
         int code=GenerateCode.generateCode();
         User user=userRepository.findByEmail(email);
-        VerificationRequest verificationRequest = new VerificationRequest(user,code);
+        VerificationRequest verificationRequest = new VerificationRequest(user,code, VerificationRequest.VerificationType.VERIFY_EMAIL);
         verificationRequestRepository.save(verificationRequest);
         return code;
     }
@@ -113,12 +134,26 @@ public class AuthService {
 
     }
     public int generateForgotPasswordCode(String email){
+        // Find the user by email
         User user = userRepository.findByEmail(email);
+        // Check if the user exists
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with email: " + email);
+        }
+        // Check if there is an existing verification request for the user
+        Optional<VerificationRequest> existingRequest = verificationRequestRepository.findByUser(user);
+        // If the verification request exists, return the existing code
+        if (existingRequest.isPresent()) {
+            return existingRequest.get().getVerificationCode();
+        }
+        // If no existing code, generate a new one
         int code = GenerateCode.generateCode();
-        VerificationRequest verificationRequest = new VerificationRequest(user,code);
+        // Create a new VerificationRequest and save it
+        VerificationRequest verificationRequest = new VerificationRequest(user, code, VerificationRequest.VerificationType.FORGOT_PASSWORD);
         verificationRequestRepository.save(verificationRequest);
         return code;
     }
+
     public void sendForgotPasswordCode(String email){
         User user = userRepository.findByEmail(email);
         if(user==null){
@@ -127,18 +162,28 @@ public class AuthService {
         int code = generateForgotPasswordCode(user.getEmail());
         emailService.sendHtmlEmail(email,code,user.getFirstName()+user.getLastName(),"resetPassword");
     }
-    public AuthResponse verifyPasswordResetCode(String email,int code) {
+    public AuthResponse verifyPasswordResetCode(String email, int code) {
         User user = userRepository.findByEmail(email);
-       Optional<VerificationRequest> verificationRequest= verificationRequestRepository.findByUser(user);
-       if(verificationRequest.isEmpty()){
-           return new AuthResponse(false,"Invalid verification code",null,null);
-       }
-       if(verificationRequest.get().getVerificationCode()!=code){
-           return new AuthResponse(false,"Invalid verification code",null,null);
-       }
-       verificationRequestRepository.delete(verificationRequest.get());
-       return new AuthResponse(true,"Proceed to set a new Password",user, jwtService.generateToken(user.getEmail(),"reset-password"));
+        if (user == null) {
+            return new AuthResponse(false, "User does not exist. Register and try again.", null, null);
+        }
+        Optional<VerificationRequest> optionalRequest = verificationRequestRepository.findByUser(user);
+        if (optionalRequest.isEmpty()) {
+            return new AuthResponse(false, "Invalid verification code.", null, null);
+        }
+        VerificationRequest verificationRequest = optionalRequest.get();
+        // Validate code and verification type
+        if (verificationRequest.getVerificationCode() != code ||
+                verificationRequest.getVerificationType() != VerificationRequest.VerificationType.FORGOT_PASSWORD) {
+            return new AuthResponse(false, "Invalid verification code.", null, null);
+        }
+        // Generate token before deleting verification request (in case of errors)
+        String resetToken = jwtService.generateToken(user.getEmail(), "reset-password");
+        // Remove verification request after successful validation
+        verificationRequestRepository.delete(verificationRequest);
+        return new AuthResponse(true, "Proceed to set a new password.", user, resetToken);
     }
+
     public AuthResponse resetPassword(String token,String password) {
         User user = userRepository.findByEmail(jwtService.getUsernameFromToken(token));
         if(user==null){
