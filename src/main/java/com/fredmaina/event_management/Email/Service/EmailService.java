@@ -13,44 +13,53 @@ import org.thymeleaf.context.Context;
 
 import java.util.Objects;
 
-
 @Service
 public class EmailService {
+
+    // Define your authorized sender email address as a constant
+    private static final String FROM_ADDRESS = "events.noreply@fredmaina.com";
+
     @Autowired
-    JavaMailSender javaMailSender;
+    private JavaMailSender javaMailSender;
+
     @Autowired
-    TemplateEngine templateEngine;
+    private TemplateEngine templateEngine;
 
     @Async
     public void sendEmail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
+        // Set the sender's email address
+        message.setFrom(FROM_ADDRESS);
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
         javaMailSender.send(message);
     }
-    @Async
-    public void sendHtmlEmail(String to, int code,String fullName,String subject) {
 
+    @Async
+    public void sendHtmlEmail(String to, int code, String fullName, String subject) {
         MimeMessage message = javaMailSender.createMimeMessage();
         try {
-
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            // Set the sender's email address for the HTML email
+            helper.setFrom(FROM_ADDRESS);
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(Objects.requireNonNull(htmlContent(subject, code, fullName)), true);
+            // Generate the email content based on the subject
+            String content = htmlContent(subject, code, fullName);
+            helper.setText(Objects.requireNonNull(content), true);
             javaMailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();
-            // Handle exception
-
+            // Optionally add more error handling here
         }
     }
-    private String htmlContent(String subject,int code,String fullName) {
+
+    private String htmlContent(String subject, int code, String fullName) {
         Context context = new Context();
         context.setVariable("fullName", fullName);
 
-        switch (subject){
+        switch (subject) {
             case "resetPassword":
                 context.setVariable("resetCode", code);
                 return templateEngine.process("password-reset", context);
@@ -59,10 +68,6 @@ public class EmailService {
                 return templateEngine.process("email-verification", context);
             default:
                 return null;
-
         }
-
     }
-
-
 }
