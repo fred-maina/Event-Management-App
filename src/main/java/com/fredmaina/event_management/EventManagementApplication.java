@@ -11,7 +11,6 @@ import static org.springframework.data.web.config.EnableSpringDataWebSupport.Pag
 
 @EnableAsync
 @SpringBootApplication
-@EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 public class EventManagementApplication {
 
 	public static void main(String[] args) {
