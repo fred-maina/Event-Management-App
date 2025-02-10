@@ -15,6 +15,13 @@ import com.fredmaina.event_management.AuthService.repositories.UserRepository;
 import com.fredmaina.event_management.EventCreationService.services.EventService;
 import com.fredmaina.event_management.AWS.services.S3Service;
 import com.fredmaina.event_management.EventCreationService.services.TicketTypeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +32,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-
 @RestController
 @RequestMapping("api/events")
+@Tag(name = "Event Management", description = "APIs for creating, retrieving, updating, and deleting events")
 public class EventController {
+
     @Autowired
     private EventService eventService;
     @Autowired
@@ -42,10 +50,17 @@ public class EventController {
     @Autowired
     private EmailService emailService;
 
-
-
-    @PostMapping(value="/create",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<APIResponse<Event>> createEvent(@RequestPart("event") @Valid EventDto eventDto, @RequestPart("poster") MultipartFile poster,@RequestHeader("Authorization") String token){
+    @PostMapping(value="/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Create Event", description = "Creates a new event with a poster image and event details.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Event created successfully",
+                    content = @Content(schema = @Schema(implementation = APIResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Event creation failed", content = @Content)
+    })
+    public ResponseEntity<APIResponse<Event>> createEvent(
+            @Parameter(description = "Event details", required = true) @RequestPart("event") @Valid EventDto eventDto,
+            @Parameter(description = "Poster image file", required = true) @RequestPart("poster") MultipartFile poster,
+            @Parameter(description = "Bearer token for authorization", required = true) @RequestHeader("Authorization") String token) {
         token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
         // Extract user ID from token
         String username = jwtService.getUsernameFromToken(token);
@@ -53,13 +68,11 @@ public class EventController {
         eventDto.setCreatorId(userId);
         String bucketName = "fredeventsystem";
 
-
-        String key = UUID.randomUUID()+"_" + userId;
+        String key = UUID.randomUUID() + "_" + userId;
 
         s3Service.uploadFileToS3(bucketName, poster, key);
         String fileUrl = s3Service.getFileUrl(bucketName, key);
         eventDto.setPosterUrl(fileUrl);
-
 
         Optional<User> userOptional = userRepository.findById(eventDto.getCreatorId());
         if (userOptional.isEmpty()) {
@@ -74,24 +87,40 @@ public class EventController {
         )).orElseGet(() -> ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 new APIResponse<>(false, "Event creation failed. Please check your input.", null)
         ));
-
     }
+
     @GetMapping("/get/all")
-    public ResponseEntity<APIResponse<Page<EventDto>>> getEventsByCreatorFromToken(@RequestHeader("Authorization") String token,@RequestParam int page,@RequestParam int size) {
+    @Operation(summary = "Get Events by Creator (from Token)", description = "Fetches events created by the user extracted from the provided token.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Events fetched successfully",
+                    content = @Content(schema = @Schema(implementation = APIResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content)
+    })
+    public ResponseEntity<APIResponse<Page<EventDto>>> getEventsByCreatorFromToken(
+            @Parameter(description = "Bearer token for authorization", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "Page number for pagination", required = true) @RequestParam int page,
+            @Parameter(description = "Page size for pagination", required = true) @RequestParam int size) {
         token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
 
         // Extract user ID from token
         String username = jwtService.getUsernameFromToken(token);  // Ensure the method works
         UUID userId = userRepository.findByEmail(username).getId();
 
-        return getEventsByCreator(userId,page,size);  // Call your event fetching method
+        return getEventsByCreator(userId, page, size);  // Call your event fetching method
     }
+
     @GetMapping("/get/{creator_id}")
+    @Operation(summary = "Get Events by Creator ID", description = "Fetches events created by the specified creator with pagination.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Events fetched successfully",
+                    content = @Content(schema = @Schema(implementation = APIResponse.class))),
+            @ApiResponse(responseCode = "400", description = "User with the given ID does not exist", content = @Content),
+            @ApiResponse(responseCode = "404", description = "No events found for the user", content = @Content)
+    })
     public ResponseEntity<APIResponse<Page<EventDto>>> getEventsByCreator(
-            @PathVariable UUID creator_id,
-            @RequestParam(required = false) int page,
-            @RequestParam(required = false) int size
-    ) {
+            @Parameter(description = "Creator ID", required = true) @PathVariable UUID creator_id,
+            @Parameter(description = "Page number for pagination", required = false) @RequestParam(required = false) int page,
+            @Parameter(description = "Page size for pagination", required = false) @RequestParam(required = false) int size) {
         Optional<User> optionalUser = userRepository.findById(creator_id);
         if (optionalUser.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
@@ -140,22 +169,18 @@ public class EventController {
     }
 
 
-    @GetMapping("/send-email")
-    public String sendEmail(@RequestParam
-                            String email) {
-        emailService.sendEmail(
-                email,
-                "Test Email from Spring Boot",
-                "Hello! This is a test email from Spring Boot."
-        );
-        return "Email Sent!";
-    }
-    @GetMapping("/get/")//Insecure change
+
+    @GetMapping("/get/")
+    @Operation(summary = "Get All Events", description = "Fetches all events with pagination. [Insecure change]")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Events fetched successfully",
+                    content = @Content(schema = @Schema(implementation = APIResponse.class))),
+            @ApiResponse(responseCode = "404", description = "No events found", content = @Content)
+    })
     public ResponseEntity<APIResponse<Page<Event>>> getAllEvents(
-            @RequestParam() int page,
-            @RequestParam int size
-    ) {
-        Optional<Page<Event>> optionalEvents = eventService.getAllEvents(page,size);
+            @Parameter(description = "Page number for pagination", required = true) @RequestParam() int page,
+            @Parameter(description = "Page size for pagination", required = true) @RequestParam int size) {
+        Optional<Page<Event>> optionalEvents = eventService.getAllEvents(page, size);
         if (optionalEvents.isPresent()) {
             APIResponse<Page<Event>> response = new APIResponse<>(
                     true,
@@ -172,73 +197,107 @@ public class EventController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
+
     @GetMapping("/get/event/{id}")
-    public ResponseEntity<APIResponse<Event>> getEventByID(@PathVariable UUID id){
+    @Operation(summary = "Get Event by ID", description = "Fetches the details of a specific event using its ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Event fetched successfully",
+                    content = @Content(schema = @Schema(implementation = APIResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Event not found", content = @Content)
+    })
+    public ResponseEntity<APIResponse<Event>> getEventByID(
+            @Parameter(description = "Event ID", required = true) @PathVariable UUID id) {
         Optional<Event> event = eventService.getEventById(id);
         if (event.isEmpty()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new APIResponse<>(false,"Event Not Found",null)
+                    new APIResponse<>(false, "Event Not Found", null)
             );
         }
         return ResponseEntity.ok(
-                new APIResponse<>(true,"Event fetched succesfully",event.get())
+                new APIResponse<>(true, "Event fetched succesfully", event.get())
         );
-
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<APIResponse<Event>> deleteEvent(@RequestHeader("Authorization") String token,@PathVariable UUID id){
+    @Operation(summary = "Delete Event", description = "Deletes an event by its ID. Only the creator is authorized to perform this action.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Event deleted successfully",
+                    content = @Content(schema = @Schema(implementation = APIResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Event not found", content = @Content)
+    })
+    public ResponseEntity<APIResponse<Event>> deleteEvent(
+            @Parameter(description = "Bearer token for authorization", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "Event ID", required = true) @PathVariable UUID id) {
         Optional<Event> optionalEvent = eventService.getEventById(id);
         if (optionalEvent.isEmpty()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new APIResponse<>(false,"Event does not exist",null)
+                    new APIResponse<>(false, "Event does not exist", null)
             );
         }
         token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
         // Extract user ID from token
         String username = jwtService.getUsernameFromToken(token);
-        if(!optionalEvent.get().getCreator().getEmail().equals(username)) {
+        if (!optionalEvent.get().getCreator().getEmail().equals(username)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(
-                            new APIResponse<>(false,"You are unauthorized to perform this action!",null)
+                            new APIResponse<>(false, "You are unauthorized to perform this action!", null)
                     );
         }
         eventService.deleteEventById(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(
-                new APIResponse<>(true,"Event Deleted successfully",null)
+                new APIResponse<>(true, "Event Deleted successfully", null)
         );
     }
+
     @PatchMapping("/update/{eventId}")
-    public ResponseEntity<APIResponse<Event>> updateEvent(@PathVariable UUID eventId, @RequestHeader("Authorization") String token,@RequestBody EventDto eventDto){
+    @Operation(summary = "Update Event", description = "Updates the details of an event. Only the creator is allowed to update.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Event updated successfully",
+                    content = @Content(schema = @Schema(implementation = APIResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Event not found", content = @Content)
+    })
+    public ResponseEntity<APIResponse<Event>> updateEvent(
+            @Parameter(description = "Event ID", required = true) @PathVariable UUID eventId,
+            @Parameter(description = "Bearer token for authorization", required = true) @RequestHeader("Authorization") String token,
+            @Parameter(description = "Updated event details", required = true) @RequestBody EventDto eventDto) {
         Optional<Event> eventOptional = eventService.getEventById(eventId);
         if (eventOptional.isEmpty()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new APIResponse<>(false,"Event Does not Exist",null));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new APIResponse<>(false, "Event Does not Exist", null));
         }
         token = token.replace("Bearer ", "").trim();  // Ensure space is also stripped
         // Extract user ID from token
         String username = jwtService.getUsernameFromToken(token);
-        if(!eventOptional.get().getCreator().getEmail().equals(username)) {
+        if (!eventOptional.get().getCreator().getEmail().equals(username)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(
-                            new APIResponse<>(false,"You are unauthorized to perform this action!",null)
+                            new APIResponse<>(false, "You are unauthorized to perform this action!", null)
                     );
         }
-        Optional<Event> updatedEvent= eventService.updateEventInfo(eventDto,eventId);
+        Optional<Event> updatedEvent = eventService.updateEventInfo(eventDto, eventId);
         return ResponseEntity.status(HttpStatus.OK).body(
-                new APIResponse<>(true,"Event Info Updated successfully",updatedEvent.get()));
-                 }
+                new APIResponse<>(true, "Event Info Updated successfully", updatedEvent.get())
+        );
+    }
 
     @GetMapping("/event-types")
-    public ResponseEntity<APIResponse<List<EventType>>>  getAllEventTypes(){
+    @Operation(summary = "Get All Event Types", description = "Retrieves a list of all available event types.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Event types fetched successfully",
+                    content = @Content(schema = @Schema(implementation = APIResponse.class))),
+            @ApiResponse(responseCode = "404", description = "No event types found", content = @Content)
+    })
+    public ResponseEntity<APIResponse<List<EventType>>> getAllEventTypes() {
         List<EventType> eventTypes = eventService.getAllEventTypes();
-        if(eventTypes.isEmpty()){
+        if (eventTypes.isEmpty()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    new APIResponse<>(false,"No Events Found",null)
+                    new APIResponse<>(false, "No Events Found", null)
             );
         }
         return ResponseEntity.ok(
-                new APIResponse<>(true,"Events Fetched Successfully",eventTypes)
+                new APIResponse<>(true, "Events Fetched Successfully", eventTypes)
         );
     }
 }
