@@ -38,6 +38,15 @@ public class User {
         this.password=password;
 
     }
+    @Override
+    public String toString() {
+        return "User{" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                // Avoid calling Event or TicketType to prevent the cycle.
+                '}';
+    }
+
 
     public boolean isEnabled() {
         return true;
