@@ -41,10 +41,10 @@ public class Event {
 
     @JoinColumn(name="creator_id",referencedColumnName = "user_id")
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
     private User creator;
 
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<TicketType> ticketTypes = new ArrayList<>();
 
     @ManyToMany
@@ -67,4 +67,12 @@ public class Event {
         this.eventTypes=eventTypes;
 
     }
+    @Override
+    public String toString() {
+        return "Event{" +
+                "eventName='" + eventName + '\'' +
+                ", eventDate='" + eventStartDate + '\'' +
+                '}';
+    }
+
 }
