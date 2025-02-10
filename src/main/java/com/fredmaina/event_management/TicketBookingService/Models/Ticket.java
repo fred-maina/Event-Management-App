@@ -68,4 +68,6 @@ public class Ticket {
     @JsonIgnore
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
+
+    private String url;
 }
