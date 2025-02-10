@@ -45,7 +45,7 @@ public class PaymentRequestDTO {
     private Long phoneNumber;
 
     @JsonProperty("CallBackURL")
-    private final String callBackURL ="https://f7e9-41-89-10-241.ngrok-free.app/api/ticket/mpesa/test";
+    private final String callBackURL ="https://api.events.v0.fredmaina.com/api/ticket/mpesa/callback";
 
     @JsonProperty("AccountReference")
     private  String accountReference ;
