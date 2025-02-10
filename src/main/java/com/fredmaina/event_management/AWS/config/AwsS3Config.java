@@ -9,14 +9,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AwsS3Config {
 
-
-
     @Bean
     public S3Client s3Client() {
-        // Retrieve AWS credentials and region from environment variables
-        String awsRegion = "eu-north-1";                   // Replace with your desired region
-        String awsAccessKey = System.getenv("AWS_ACCESS_KEY_ID");          // Replace with your access key
-        String awsSecretKey = System.getenv("AWS_SECRET_ACCESS_KEY");      // Replace with your secret key
+        // Retrieve AWS region from environment variables
+        String awsRegion = "eu-north-1";  // Explicitly setting AWS region
+
+        // Retrieve AWS credentials from environment variables
+        String awsAccessKey = System.getenv("AWS_ACCESS_KEY_ID");
+        String awsSecretKey = System.getenv("AWS_SECRET_ACCESS_KEY");
+
+        if (awsAccessKey == null || awsSecretKey == null) {
+            throw new IllegalArgumentException("AWS credentials not found in environment variables.");
+        }
 
         AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(
                 software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create(awsAccessKey, awsSecretKey)
