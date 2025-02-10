@@ -1,6 +1,7 @@
 package com.fredmaina.event_management.AuthService.config;
 
 import com.fredmaina.event_management.AuthService.services.UserDetailsServiceImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -49,7 +50,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/webjars/**",
-                                "/favicon.ico"
+                                "/favicon.ico",
+                                "/"
                         ).permitAll() // Allow unauthenticated access to these endpoints
                         .anyRequest().authenticated() // Require authentication for all other endpoints
                 )
@@ -70,7 +72,8 @@ public class SecurityConfig {
         configuration.setAllowCredentials(true); // Allow credentials if needed
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply to all paths
+        source.registerCorsConfiguration("/**", configuration);
+        // Apply to all paths
         return source;
     }
 
