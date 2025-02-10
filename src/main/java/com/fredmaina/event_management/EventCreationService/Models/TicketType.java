@@ -28,9 +28,16 @@ public class TicketType {
     @Column(name="number_of_tickets")
     private int numberOfTickets;
 
-    @ManyToOne(fetch=FetchType.LAZY,cascade = CascadeType.ALL)
+    @ManyToOne(fetch=FetchType.EAGER,cascade = CascadeType.ALL)
     @JsonIgnore
     @JoinColumn(name="event_id" ,referencedColumnName = "event_id")
     private Event event;
+
+    @Override
+    public String toString() {
+        return "TicketType{" +
+                "ticketType='" + typeCategory + '\'' +
+                '}';
+    }
 
 }
