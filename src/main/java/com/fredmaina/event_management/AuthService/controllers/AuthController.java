@@ -27,7 +27,7 @@ import java.util.Map;
         methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.DELETE, RequestMethod.PUT, RequestMethod.PATCH, RequestMethod.OPTIONS}
 )
 @io.swagger.v3.oas.annotations.tags.Tag(
-        name = "Authentication API",
+        name = "1. Authentication API",
         description = "Handles authentication-related operations such as registration, login, verification, password reset, and account deletion."
 )
 public class AuthController {
@@ -156,22 +156,6 @@ public class AuthController {
         return authService.deleteUser(token);
     }
 
-    // ============================================================================
-    // Lambda Test Endpoint
-    // ============================================================================
-    @Operation(
-            summary = "Test Lambda Function",
-            description = "Invokes a sample AWS Lambda function and returns its response as plain text."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lambda function invoked successfully",
-                    content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
-    @GetMapping("/lambda-test")
-    public String testLambda() {
-        return lambdaService.invokeLambda();
-    }
 
     // ============================================================================
     // Forgot Password Endpoint
