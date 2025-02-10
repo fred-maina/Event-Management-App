@@ -50,8 +50,12 @@ public class MpesaAuthService {
     }
 
     public static HttpEntity<String> getStringHttpEntity() {
+        // Fetch the auth token from environment variable
+        String authHeaderValue = System.getenv("MPESA_AUTH_HEADER");
 
-        String authHeaderValue = "Basic OFN1QmRjajBld2hPdXFCa2lVam55NTB3a2hzWjhZZ1I0N0l1cDZRU2xiVDJCdEdnOlN6QWo3NEttSjdDWk1SOHBKRVdINU5xZDFXVHg0c2hZZFRQbXk2NTdXUkNpc3BQNk5nY1VBWFVHN3pMdG1vY3g=";
+        if (authHeaderValue == null) {
+            throw new IllegalArgumentException("Authorization header is not set in environment variables.");
+        }
 
         // Set headers (Authorization)
         HttpHeaders headers = new HttpHeaders();
