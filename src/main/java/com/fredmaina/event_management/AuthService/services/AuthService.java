@@ -56,7 +56,7 @@ public class AuthService {
         try {
             userRepository.save(user);
             String token = jwtService.generateToken(user.getEmail(),"authenticate");
-            int code= generateVerificationCode(user.getEmail());// Generate token using the email
+            int code= generateVerificationCode(user.getEmail());
             emailService.sendHtmlEmail(registerRequest.getEmail(),code,registerRequest.getFirstName()+" "+registerRequest.getLastName(),"verificationCode");
             return new AuthResponse(true, "Check your email for your verification code", user, token);
         } catch (Exception e) {
