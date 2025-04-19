@@ -21,7 +21,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'  # Updated from adoptopenjdk to temurin
 
-      # Cache Maven dependencies to speed up build.
+      # Cache Maven dependencies to speed up build
       - name: Cache Maven dependencies
         uses: actions/cache@v3
         with:
@@ -32,7 +32,9 @@ jobs:
 
       # Build the Maven project
       - name: Build with Maven
-        run: ./mvnw clean install
+        run: |
+          chmod +x ./mvnw  # Make sure the mvnw script is executable
+          ./mvnw clean install  # Run the build using Maven Wrapper
 
       # Log in to Docker Hub using secrets stored in GitHub Secrets
       - name: Log in to Docker Hub
