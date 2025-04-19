@@ -21,7 +21,7 @@ jobs:
           java-version: '21'
           distribution: 'adoptopenjdk'
 
-      # Cache Maven dependencies to speed up build
+      # Cache Maven dependencies to speed up build.
       - name: Cache Maven dependencies
         uses: actions/cache@v3
         with:
