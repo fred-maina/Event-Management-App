@@ -55,11 +55,11 @@ jobs:
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
             --build-arg MPESA_AUTH_HEADER=${{ secrets.MPESA_AUTH_HEADER }} \
             --build-arg AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-s            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            --build-arg AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
             --build-arg AWS_REGION=${{ secrets.AWS_REGION }} \
             -t ${{ secrets.DOCKER_USERNAME }}/event-management-app:latest .
 
-      # Push the Docker image to Docker Hubmmmmmmmmmmmmmmmmmmmmmmmmm
+      # Push the Docker image to Docker Hub
       - name: Push Docker image to Docker Hub
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/event-management-app:latest
