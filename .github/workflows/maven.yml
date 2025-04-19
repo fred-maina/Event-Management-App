@@ -19,9 +19,9 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '21'
-          distribution: 'temurin'  # Updated from adoptopenjdk to temurin
+          distribution: 'temurin'
 
-      # Cache Maven dependencies to speed up build
+      # Cache Maven dependencies
       - name: Cache Maven dependencies
         uses: actions/cache@v3
         with:
@@ -30,11 +30,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Build the Maven project
+      # Build the Maven project with environment variables
       - name: Build with Maven
         run: |
-          chmod +x ./mvnw  # Make sure the mvnw script is executable
-          ./mvnw clean install  # Run the build using Maven Wrapper
+          chmod +x ./mvnw
+          PROD_SPRING_DATASOURCE_URL=${{ secrets.PROD_SPRING_DATASOURCE_URL }} \
+          PROD_SPRING_DATASOURCE_USERNAME=${{ secrets.PROD_SPRING_DATASOURCE_USERNAME }} \
+          PROD_SPRING_DATASOURCE_PASSWORD=${{ secrets.PROD_SPRING_DATASOURCE_PASSWORD }} \
+          SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }} \
+          SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }} \
+          JWT_SECRET=${{ secrets.JWT_SECRET }} \
+          MPESA_AUTH_HEADER=${{ secrets.MPESA_AUTH_HEADER }} \
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+          AWS_REGION=${{ secrets.AWS_REGION }} \
+          ./mvnw clean install
 
       # Log in to Docker Hub using secrets stored in GitHub Secrets
       - name: Log in to Docker Hub
@@ -47,9 +57,9 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            --build-arg SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }} \
-            --build-arg SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }} \
-            --build-arg SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }} \
+            --build-arg SPRING_DATASOURCE_URL=${{ secrets.PROD_SPRING_DATASOURCE_URL }} \
+            --build-arg SPRING_DATASOURCE_USERNAME=${{ secrets.PROD_SPRING_DATASOURCE_USERNAME }} \
+            --build-arg SPRING_DATASOURCE_PASSWORD=${{ secrets.PROD_SPRING_DATASOURCE_PASSWORD }} \
             --build-arg SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }} \
             --build-arg SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }} \
             --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
