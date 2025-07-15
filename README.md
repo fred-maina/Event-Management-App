@@ -30,7 +30,7 @@ cd event-management-app
 
 ### Configure the Application
 1. **AWS Credentials:** Set the following environment variables:
-   - `AWS_REGION`: Your AWS region (e.g., `us-east-1`)
+   - `AWS_REGION`: Your AWS region 
    - `AWS_ACCESS_KEY_ID`: Your AWS access key
    - `AWS_SECRET_ACCESS_KEY`: Your AWS secret key
 
